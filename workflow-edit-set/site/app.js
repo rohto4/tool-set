@@ -769,9 +769,18 @@ function exportJson() {
 function importJson(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const data = JSON.parse(String(reader.result));
-    replaceDiagram(data);
-    setTextStatus("Imported JSON workflow.");
+    const raw = String(reader.result);
+    const isJson = file.name.toLowerCase().endsWith(".json") || raw.trim().startsWith("{");
+    if (isJson) {
+      const data = JSON.parse(raw);
+      replaceDiagram(data);
+      setTextStatus("Imported JSON workflow.");
+      return;
+    }
+    const parsed = parseTextDiagram(raw);
+    replaceDiagram(parsed);
+    textArea.value = raw;
+    setTextStatus("Imported text workflow.");
   };
   reader.readAsText(file);
 }
@@ -827,14 +836,17 @@ function exportSvg() {
 }
 
 function exportText() {
-  const lines = [`workflow ${state.direction}`];
+  const lines = [`flowchart ${state.direction}`];
   for (const node of state.nodes) {
-    lines.push(
-      `node ${node.id} "${node.label.replaceAll('"', '\\"')}" type=${node.type} x=${Math.round(node.x)} y=${Math.round(node.y)} color=${node.color}`
-    );
+    lines.push(`${node.id}["${node.label.replaceAll('"', '\\"')}"]`);
   }
   for (const edge of state.edges) {
-    lines.push(`edge ${edge.from} -> ${edge.to}`);
+    lines.push(`${edge.from} --> ${edge.to}`);
+  }
+  for (const node of state.nodes) {
+    lines.push(`%% type ${node.id} ${node.type}`);
+    lines.push(`%% pos ${node.id} ${Math.round(node.x)} ${Math.round(node.y)}`);
+    lines.push(`%% color ${node.id} ${node.color}`);
   }
   return lines.join("\n");
 }
@@ -846,9 +858,33 @@ function parseTextDiagram(text) {
     .filter((line) => line && !line.startsWith("#"));
 
   const parsed = { direction: "LR", nodes: [], edges: [] };
-  const nodeIds = new Set();
+  const nodesById = new Map();
+
+  function ensureNode(id, partial = {}) {
+    if (!nodesById.has(id)) {
+      const component = getComponent(partial.type ?? "ec2");
+      const node = {
+        id,
+        type: partial.type ?? component.type,
+        label: partial.label ?? id,
+        x: Number(partial.x ?? 120 + nodesById.size * 40),
+        y: Number(partial.y ?? 120 + nodesById.size * 30),
+        color: partial.color ?? component.color
+      };
+      nodesById.set(id, node);
+      return node;
+    }
+
+    const existing = nodesById.get(id);
+    Object.assign(existing, partial);
+    return existing;
+  }
 
   for (const line of lines) {
+    if (line.startsWith("flowchart ")) {
+      parsed.direction = line.split(/\s+/)[1] ?? "LR";
+      continue;
+    }
     if (line.startsWith("workflow ")) {
       parsed.direction = line.split(/\s+/)[1] ?? "LR";
       continue;
@@ -858,30 +894,70 @@ function parseTextDiagram(text) {
     if (nodeMatch) {
       const [, id, rawLabel, type, x, y, color] = nodeMatch;
       const component = getComponent(type);
-      parsed.nodes.push({
-        id,
+      ensureNode(id, {
         type,
         label: rawLabel.replaceAll('\\"', '"'),
         x: Number(x ?? 120 + parsed.nodes.length * 40),
         y: Number(y ?? 120 + parsed.nodes.length * 30),
         color: color ?? component.color
       });
-      nodeIds.add(id);
       continue;
     }
 
     const edgeMatch = line.match(/^edge\s+([A-Za-z0-9_-]+)\s+->\s+([A-Za-z0-9_-]+)$/);
     if (edgeMatch) {
       const [, from, to] = edgeMatch;
+      ensureNode(from);
+      ensureNode(to);
       parsed.edges.push({ id: createId("edge"), from, to });
+      continue;
+    }
+
+    const mermaidNodeMatch = line.match(/^([A-Za-z0-9_-]+)\[(?:"((?:\\"|[^"])*)"|([^\]]+))\]$/);
+    if (mermaidNodeMatch) {
+      const [, id, quotedLabel, plainLabel] = mermaidNodeMatch;
+      ensureNode(id, { label: (quotedLabel ?? plainLabel ?? id).replaceAll('\\"', '"') });
+      continue;
+    }
+
+    const mermaidEdgeMatch = line.match(/^([A-Za-z0-9_-]+)\s+-->\s+([A-Za-z0-9_-]+)$/);
+    if (mermaidEdgeMatch) {
+      const [, from, to] = mermaidEdgeMatch;
+      ensureNode(from);
+      ensureNode(to);
+      parsed.edges.push({ id: createId("edge"), from, to });
+      continue;
+    }
+
+    const typeDirective = line.match(/^%%\s+type\s+([A-Za-z0-9_-]+)\s+([A-Za-z0-9_-]+)$/);
+    if (typeDirective) {
+      const [, id, type] = typeDirective;
+      const component = getComponent(type);
+      ensureNode(id, { type, color: component.color });
+      continue;
+    }
+
+    const positionDirective = line.match(/^%%\s+pos\s+([A-Za-z0-9_-]+)\s+(-?\d+)\s+(-?\d+)$/);
+    if (positionDirective) {
+      const [, id, x, y] = positionDirective;
+      ensureNode(id, { x: Number(x), y: Number(y) });
+      continue;
+    }
+
+    const colorDirective = line.match(/^%%\s+color\s+([A-Za-z0-9_-]+)\s+(#[0-9A-Fa-f]{6})$/);
+    if (colorDirective) {
+      const [, id, color] = colorDirective;
+      ensureNode(id, { color });
       continue;
     }
 
     throw new Error(`Cannot parse line: ${line}`);
   }
 
+  parsed.nodes = [...nodesById.values()];
+
   for (const edge of parsed.edges) {
-    if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
+    if (!nodesById.has(edge.from) || !nodesById.has(edge.to)) {
       throw new Error(`Edge references unknown node: ${edge.from} -> ${edge.to}`);
     }
   }

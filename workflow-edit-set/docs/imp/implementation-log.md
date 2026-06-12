@@ -12,3 +12,4 @@
 - GitHub 登録と task board の初期整備を実施
 - 主要ショートカット、範囲選択、複数選択、テキストDSL 実装に着手
 - 整列、前面/背面、パレット検索を追加
+- Mermaid 風 `flowchart` 書式の import/export とテキストファイル取り込みを追加
