@@ -12,6 +12,7 @@
 - 自前アイコンセットを追加してノード中央に表示
 - GitHub 登録、author 設定、定期 commit / push の流れを確立
 - 右カラムに Progress Review を追加
+- 複数のデモテンプレートを即時ロード可能にした
 
 ## In Progress
 

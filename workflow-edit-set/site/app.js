@@ -116,6 +116,59 @@ const sampleState = {
   ]
 };
 
+const sampleTemplates = {
+  webApp: {
+    label: "Web App",
+    diagram: sampleState
+  },
+  eventMesh: {
+    label: "Event Mesh",
+    diagram: {
+      direction: "LR",
+      nodes: [
+        { id: "edge", type: "apigw", label: "Partner API", x: 120, y: 210 },
+        { id: "bus", type: "eventbridge", label: "EventBridge", x: 420, y: 210 },
+        { id: "orders", type: "lambda", label: "Order Handler", x: 740, y: 90 },
+        { id: "notify", type: "sns", label: "Notify Topic", x: 740, y: 260 },
+        { id: "queue", type: "sqs", label: "Retry Queue", x: 1040, y: 260 },
+        { id: "audit", type: "cloudwatch", label: "Audit Logs", x: 1040, y: 90 },
+        { id: "state", type: "stepfunctions", label: "State Flow", x: 1320, y: 180 }
+      ],
+      edges: [
+        { id: "e1", from: "edge", to: "bus" },
+        { id: "e2", from: "bus", to: "orders" },
+        { id: "e3", from: "bus", to: "notify" },
+        { id: "e4", from: "notify", to: "queue" },
+        { id: "e5", from: "orders", to: "audit" },
+        { id: "e6", from: "orders", to: "state" }
+      ]
+    }
+  },
+  dataPipeline: {
+    label: "Data Pipeline",
+    diagram: {
+      direction: "LR",
+      nodes: [
+        { id: "ingest", type: "appflow", label: "AppFlow", x: 110, y: 180 },
+        { id: "bucket", type: "s3", label: "Raw Bucket", x: 390, y: 180 },
+        { id: "etl", type: "batch", label: "ETL Batch", x: 690, y: 120 },
+        { id: "catalog", type: "config", label: "Config Rules", x: 690, y: 300 },
+        { id: "warehouse", type: "redshift", label: "Redshift", x: 1000, y: 120 },
+        { id: "cache", type: "elasticache", label: "Result Cache", x: 1000, y: 300 },
+        { id: "dash", type: "cloudwatch", label: "Ops Dashboard", x: 1280, y: 210 }
+      ],
+      edges: [
+        { id: "e1", from: "ingest", to: "bucket" },
+        { id: "e2", from: "bucket", to: "etl" },
+        { id: "e3", from: "bucket", to: "catalog" },
+        { id: "e4", from: "etl", to: "warehouse" },
+        { id: "e5", from: "warehouse", to: "cache" },
+        { id: "e6", from: "warehouse", to: "dash" }
+      ]
+    }
+  }
+};
+
 const state = {
   nodes: [],
   edges: [],
@@ -133,6 +186,7 @@ let marqueeState = null;
 let connectStartId = null;
 let clipboard = null;
 let lastCanvasGestureAt = 0;
+let currentTemplateName = sampleTemplates.webApp.label;
 
 const palette = document.getElementById("palette");
 const canvas = document.getElementById("canvas");
@@ -168,6 +222,8 @@ const sendBackButton = document.getElementById("sendBackButton");
 const snapButton = document.getElementById("snapButton");
 const textPanelButton = document.getElementById("textPanelButton");
 const loadSampleButton = document.getElementById("loadSampleButton");
+const loadEventSampleButton = document.getElementById("loadEventSampleButton");
+const loadDataSampleButton = document.getElementById("loadDataSampleButton");
 const helpButton = document.getElementById("helpButton");
 const paletteSearchInput = document.getElementById("paletteSearchInput");
 const fileInput = document.getElementById("fileInput");
@@ -562,6 +618,7 @@ function renderReviewPanel() {
 
   reviewStats.innerHTML = `
     <span class="review-chip">${done}/${total} tasks done</span>
+    <span class="review-chip">${currentTemplateName}</span>
     <span class="review-chip">${state.nodes.length} nodes in sample</span>
     <span class="review-chip">${componentCatalog.flatMap((group) => group.items).length} components</span>
   `;
@@ -583,6 +640,7 @@ function renderReviewPanel() {
   reviewSummary.value = [
     "Workflow Editor progress update:",
     `- ${done}/${total} core tasks are now implemented or demo-ready.`,
+    `- Active demo template: ${currentTemplateName}.`,
     `- ${componentCatalog.flatMap((group) => group.items).length} AWS-like components available in the palette.`,
     "- Marquee selection, editor shortcuts, Mermaid-style import/export, PNG/SVG/JSON export, and autosave are working in the local editor.",
     "- Current focus is polishing interaction quality for hands-on testing."
@@ -1201,8 +1259,10 @@ function downloadTextFile() {
   downloadBlob(blob, "workflow-edit-set-diagram.workflow.txt");
 }
 
-function loadSample() {
-  const sample = cloneData(sampleState);
+function loadSample(templateKey = "webApp") {
+  const template = sampleTemplates[templateKey] ?? sampleTemplates.webApp;
+  currentTemplateName = template.label;
+  const sample = cloneData(template.diagram);
   replaceDiagram(sample);
 }
 
@@ -1353,7 +1413,9 @@ bringFrontButton.addEventListener("click", () => reorderSelected("front"));
 sendBackButton.addEventListener("click", () => reorderSelected("back"));
 snapButton.addEventListener("click", toggleSnap);
 textPanelButton.addEventListener("click", () => openTextPanel(true));
-loadSampleButton.addEventListener("click", loadSample);
+loadSampleButton.addEventListener("click", () => loadSample("webApp"));
+loadEventSampleButton.addEventListener("click", () => loadSample("eventMesh"));
+loadDataSampleButton.addEventListener("click", () => loadSample("dataPipeline"));
 helpButton.addEventListener("click", openHelpPanel);
 exportTextButton.addEventListener("click", () => {
   textArea.value = exportText();
@@ -1399,5 +1461,5 @@ window.addEventListener("mouseup", endPointer);
 window.addEventListener("keydown", handleKeyboard);
 
 renderPalette();
-restore(loadPersistedDiagram() ?? sampleState);
+restore(loadPersistedDiagram() ?? sampleTemplates.webApp.diagram);
 textArea.value = exportText();

@@ -20,4 +20,5 @@
 
 - Progress Review を右カラムに統合
 - SNS 投稿向けの進捗サマリー文字列を生成する処理を追加
+- Web App / Event Mesh / Data Pipeline のデモテンプレート切り替えを追加
 - 文字化けしていた運用ドキュメントを UTF-8 前提で正規化

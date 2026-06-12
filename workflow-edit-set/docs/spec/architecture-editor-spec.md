@@ -24,6 +24,7 @@ AWS の構成図エディターを参考にした、ブラウザ完結型のワ�
 - PNG 出力
 - localStorage 自動保存
 - 進捗レビュー表示
+- 複数サンプルテンプレート読み込み
 
 ## 画面構成
 
@@ -91,6 +92,7 @@ AWS の構成図エディターを参考にした、ブラウザ完結型のワ�
 ## デモ補助
 
 - サンプルワークフロー読み込み
+- Web App / Event Mesh / Data Pipeline のテンプレート切り替え
 - Quick Help パネル
 - ブラウザの localStorage に自動保存
 - 右カラムの Progress Review と SNS 向け要約コピー
