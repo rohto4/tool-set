@@ -103,6 +103,21 @@
             </label>
             <button id="deleteButton" type="button" class="danger-button">Delete Selection</button>
           </form>
+          <section id="reviewPanel" class="review-panel">
+            <div class="panel-header panel-header-tight">
+              <h2>Progress Review</h2>
+              <p>Task visibility for handoff and SNS updates.</p>
+            </div>
+            <div id="reviewStats" class="review-stats"></div>
+            <div id="reviewList" class="review-list"></div>
+            <label class="review-label">
+              Progress Summary
+              <textarea id="reviewSummary" readonly></textarea>
+            </label>
+            <div class="text-panel-actions">
+              <button id="copyReviewButton" type="button" class="ghost-button">Copy Summary</button>
+            </div>
+          </section>
           <section id="textPanel" class="text-panel hidden">
             <div class="panel-header panel-header-tight">
               <h2>Workflow Text</h2>

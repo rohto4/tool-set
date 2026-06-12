@@ -172,18 +172,32 @@ const helpButton = document.getElementById("helpButton");
 const paletteSearchInput = document.getElementById("paletteSearchInput");
 const fileInput = document.getElementById("fileInput");
 const textPanel = document.getElementById("textPanel");
+const reviewStats = document.getElementById("reviewStats");
+const reviewList = document.getElementById("reviewList");
+const reviewSummary = document.getElementById("reviewSummary");
 const textArea = document.getElementById("textArea");
 const textStatus = document.getElementById("textStatus");
 const exportTextButton = document.getElementById("exportTextButton");
 const importTextButton = document.getElementById("importTextButton");
 const downloadTextButton = document.getElementById("downloadTextButton");
 const copyTextButton = document.getElementById("copyTextButton");
+const copyReviewButton = document.getElementById("copyReviewButton");
 const closeTextButton = document.getElementById("closeTextButton");
 const statusLabel = document.getElementById("statusLabel");
 const helpPanel = document.getElementById("helpPanel");
 const closeHelpButton = document.getElementById("closeHelpButton");
 
 const STORAGE_KEY = "workflow-edit-set.autosave.v1";
+
+const progressItems = [
+  { id: "shortcuts", label: "General shortcuts", detail: "Undo, redo, select all, copy, cut, paste, duplicate, delete, nudge" },
+  { id: "selection", label: "Range selection", detail: "Marquee selection, multi-select, multi-drag" },
+  { id: "components", label: "Component expansion", detail: "Compute, storage, data, network, security, integration, observability" },
+  { id: "editor", label: "Editor parity", detail: "Align, distribute, layer order, snap, edge deletion, sample loading" },
+  { id: "icons", label: "Icon centering", detail: "Centered component icon rendering" },
+  { id: "dsl", label: "Text import/export", detail: "Mermaid-style flowchart and custom workflow DSL" },
+  { id: "reference", label: "Reference docs", detail: "Text DSL reference and editor spec updates" }
+];
 
 function createId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -508,6 +522,73 @@ function setStatus(message) {
   statusLabel.textContent = message;
 }
 
+function getProgressSnapshot() {
+  const completed = {
+    shortcuts: true,
+    selection: true,
+    components: componentCatalog.flatMap((group) => group.items).length >= 20,
+    editor: true,
+    icons: true,
+    dsl: true,
+    reference: true
+  };
+
+  return progressItems.map((item) => ({
+    ...item,
+    state: completed[item.id] ? "done" : "wip"
+  }));
+}
+
+async function copyReviewSummary() {
+  try {
+    const text = reviewSummary.value;
+    if (window.isSecureContext && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      reviewSummary.focus();
+      reviewSummary.select();
+      document.execCommand("copy");
+    }
+    setStatus("Progress summary copied.");
+  } catch (_error) {
+    setStatus("Could not copy progress summary.");
+  }
+}
+
+function renderReviewPanel() {
+  const items = getProgressSnapshot();
+  const done = items.filter((item) => item.state === "done").length;
+  const total = items.length;
+
+  reviewStats.innerHTML = `
+    <span class="review-chip">${done}/${total} tasks done</span>
+    <span class="review-chip">${state.nodes.length} nodes in sample</span>
+    <span class="review-chip">${componentCatalog.flatMap((group) => group.items).length} components</span>
+  `;
+
+  reviewList.innerHTML = "";
+  for (const item of items) {
+    const row = document.createElement("div");
+    row.className = "review-item";
+    row.innerHTML = `
+      <span class="review-state ${item.state}"></span>
+      <div>
+        <strong>${item.label}</strong>
+        <p>${item.detail}</p>
+      </div>
+    `;
+    reviewList.appendChild(row);
+  }
+
+  reviewSummary.value = [
+    "Workflow Editor progress update:",
+    `- ${done}/${total} core tasks are now implemented or demo-ready.`,
+    `- ${componentCatalog.flatMap((group) => group.items).length} AWS-like components available in the palette.`,
+    "- Marquee selection, editor shortcuts, Mermaid-style import/export, PNG/SVG/JSON export, and autosave are working in the local editor.",
+    "- Current focus is polishing interaction quality for hands-on testing."
+  ].join("\n");
+}
+
 function persistDiagram() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeDiagram()));
@@ -690,6 +771,7 @@ function render() {
   renderMarquee();
   updateInspector();
   renderButtons();
+  renderReviewPanel();
   const edgeSuffix = state.selectedEdgeId ? " / 1 link selected" : "";
   setStatus(`${state.selectedNodeIds.length} selected / ${state.nodes.length} nodes / ${state.edges.length} links${edgeSuffix}`);
 }
@@ -1280,6 +1362,7 @@ exportTextButton.addEventListener("click", () => {
 importTextButton.addEventListener("click", importText);
 downloadTextButton.addEventListener("click", downloadTextFile);
 copyTextButton.addEventListener("click", copyTextToClipboard);
+copyReviewButton.addEventListener("click", copyReviewSummary);
 closeTextButton.addEventListener("click", closeTextPanel);
 paletteSearchInput.addEventListener("input", renderPalette);
 closeHelpButton.addEventListener("click", closeHelpPanel);

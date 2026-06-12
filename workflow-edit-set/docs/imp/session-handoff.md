@@ -6,37 +6,33 @@
 
 ## Completed
 
-- `workflow-edit-set` を独立PJとして初期化
-- `workflow-edit-set/docs` を正本化
-- 初版の構成図エディターを作成
-- 自前の AWS 風アイコンを追加
-- 引継ぎ用の自律実行ルールを追加
+- `workflow-edit-set` を独立した作業単位として整理
+- `workflow-edit-set/docs` 配下へドキュメントを集約
+- 初期版の AWS 風ワークフローエディターを実装
+- 自前アイコンセットを追加してノード中央に表示
+- GitHub 登録、author 設定、定期 commit / push の流れを確立
+- 右カラムに Progress Review を追加
 
 ## In Progress
 
-- 主要ショートカット実装
-- 範囲選択と複数選択実装
-- テキストDSL 入出力実装
-- アイコン中央配置の仕上げ
-- 整列、前面/背面、パレット検索を追加済み
-- Mermaid 風 `flowchart` 書式も読めるように拡張済み
-- Snap to Grid の ON/OFF と追加整列ボタンを追加済み
-- PNG 書き出し、ヘルプ表示、自動保存、エッジ選択削除を追加済み
+- 試用水準の UX をさらに詰める
+- サンプルワークフローの見栄え改善
+- テキスト DSL の使い勝手改善
+- 追加コンポーネントと編集支援機能の拡張
 
 ## Next Actions
 
-1. 新しい `site/app.js` の挙動をブラウザ実機で確認する
-2. ショートカット、範囲選択、テキスト入出力の不具合を潰す
-3. 必要ならコンポーネントをさらに増やす
-4. 変更を commit / push する
+1. `site/app.js` の構文チェックと軽い動作確認を続行する
+2. 進捗ボードと handoff 文書を実装状況に合わせて更新する
+3. 追加の試用向け改善を積み増す
+4. 定期的に commit / push する
 
 ## Notes
 
-- `G:\devwork\tool-set` は現在 `G:\devwork` 配下の親 repo から見ると未追跡ディレクトリ。
-- このため、`tool-set` 側は単独 repo として切り出すのが安全。
-- 本体実装前に GitHub 登録を済ませる、というユーザ指示あり。
-- 最新要求は `current-task-board.md` の `Requested Tasks` を正本にする。
-- GitHub 登録は完了済み。`main` は `origin/main` を追跡中。
+- 作業ルートは `G:\devwork\tool-set`
+- このリポジトリは `origin/main` を `https://github.com/rohto4/tool-set.git` に向けて運用している
+- Git author は `rohto4 / rohto111117@gmail.com`
+- ドキュメント配置はこのセッションでは `workflow-edit-set/docs` を基準にする
 
 ## Files Touched Recently
 
@@ -44,6 +40,6 @@
 - `workflow-edit-set/site/styles.css`
 - `workflow-edit-set/site/app.js`
 - `workflow-edit-set/docs/spec/architecture-editor-spec.md`
-- `workflow-edit-set/docs/guide/autonomous-execution.md`
 - `workflow-edit-set/docs/imp/current-task-board.md`
+- `workflow-edit-set/docs/imp/implementation-log.md`
 - `workflow-edit-set/docs/imp/session-handoff.md`

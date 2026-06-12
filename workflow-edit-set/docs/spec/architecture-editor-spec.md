@@ -1,38 +1,37 @@
 # Architecture Editor Spec
 
-## 目的
+## 概要
 
-AWS 風の構成図を手早く組めるローカル Web エディターを提供する。
+AWS の構成図エディターを参考にした、ブラウザ完結型のワークフロー編集サイトを実装する。
+`workflow-edit-set/site/` 配下の静的ファイルで動作し、サンプルワークフローの編集、テキスト入出力、画像出力までを可能にする。
 
-## 必須機能
+## 主要機能
 
 - パレットからノードを追加
-- ノード移動
-- ノード選択
-- 複数選択
+- ノードの移動
+- ノードの複数選択
 - 範囲選択
-- ノード名変更
-- ノード色変更
-- ノード種別ごとのアイコン表示
+- ノード間接続
 - ノード削除
-- 接続線の作成
+- 接続削除
 - Undo / Redo
-- 一般的ショートカット
-- 整列、前面/背面、スナップ
-- テキストDSL Import / Export
+- 一般的なショートカット
+- 整列、均等配置、レイヤー移動
+- テキスト DSL Import / Export
 - JSON 保存
 - JSON 読み込み
-- SVG 書き出し
-- PNG 書き出し
-- ローカル自動保存
+- SVG 出力
+- PNG 出力
+- localStorage 自動保存
+- 進捗レビュー表示
 
 ## 画面構成
 
 - 左: サービスパレット
 - 中央: 編集キャンバス
 - 右: プロパティパネル
-- 上: 操作ツールバー
-- 右下: テキストDSL パネル
+- 右下: テキスト DSL パネル
+- 右中: Progress Review パネル
 
 ## データモデル
 
@@ -41,7 +40,7 @@ AWS 風の構成図を手早く組めるローカル Web エディターを提�
   "nodes": [
     {
       "id": "node-1",
-      "type": "compute",
+      "type": "ec2",
       "label": "EC2",
       "x": 120,
       "y": 120,
@@ -58,13 +57,13 @@ AWS 風の構成図を手早く組めるローカル Web エディターを提�
 }
 ```
 
-## 非機能
+## 操作仕様
 
-- 依存なしで動作する
-- 最新主要ブラウザで閲覧可能
-- 単一フォルダの静的配信で開ける
+- 追加時はグリッドに合わせて配置する
+- 最新状態をブラウザの localStorage に保存する
+- 接続は一方向エッジとして扱う
 
-## 操作方針
+## ショートカット
 
 - `Ctrl/Cmd+Z`: Undo
 - `Ctrl/Cmd+Y`, `Ctrl/Cmd+Shift+Z`: Redo
@@ -73,32 +72,37 @@ AWS 風の構成図を手早く組めるローカル Web エディターを提�
 - `Ctrl/Cmd+X`: Cut
 - `Ctrl/Cmd+V`: Paste
 - `Ctrl/Cmd+D`: Duplicate
+- `Ctrl/Cmd+S`: JSON Export
+- `Ctrl/Cmd+E`: Text Panel
 - `Ctrl/Cmd+[`: Send Back
 - `Ctrl/Cmd+]`: Bring Front
 - `Delete` / `Backspace`: Delete
 - `Arrow`: 1px nudge
 - `Shift+Arrow`: 10px nudge
+- `Escape`: 選択解除、接続解除、パネルを閉じる
 
-## 配置補助
+## 編集補助
 
-- 左右上下の整列
-- 水平、垂直の分布
-- グリッドスナップの ON/OFF
+- 複数ノードの整列
+- 複数ノードの均等配置
+- Snap to Grid の ON/OFF
+- Connect Mode の ON/OFF
 
 ## デモ補助
 
-- サンプルワークフロー読込
+- サンプルワークフロー読み込み
 - Quick Help パネル
 - ブラウザの localStorage に自動保存
+- 右カラムの Progress Review と SNS 向け要約コピー
 
-## テキストDSL
+## テキスト DSL
 
-- Mermaid 記法を参考にした独自DSLを採用する
-- 正本は `workflow-text-dsl-reference.md`
-- ノード行、接続行、全体方向行で構成する
+- Mermaid `flowchart` を参考にした独自 DSL を採用する
+- 仕様は `workflow-text-dsl-reference.md`
+- ノード定義、接続定義、位置定義をテキストで表現する
 
 ## ビジュアル方針
 
-- AWS 公式アイコンは使わず、自前のPNGアイコンを採用する
-- ダークネイビー基調のソリッドなノードカードを使う
-- アクセント色は種別ごとに維持する
+- AWS 風の情報設計を参考にしつつ、少しソリッドな印象の UI にする
+- ダークネイビー基調のノードカードを使う
+- アクセントカラーは種別ごとに調整する

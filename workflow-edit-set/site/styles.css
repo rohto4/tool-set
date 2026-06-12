@@ -386,6 +386,73 @@ h3 {
   border-top: 1px solid rgba(148, 163, 184, 0.18);
 }
 
+.review-panel {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.review-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.review-chip {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #e8f1fb;
+  color: #23405f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.review-list {
+  display: grid;
+  gap: 8px;
+}
+
+.review-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(232, 241, 251, 0.7);
+}
+
+.review-state {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 6px;
+}
+
+.review-state.done {
+  background: #10b981;
+}
+
+.review-state.wip {
+  background: #f59e0b;
+}
+
+.review-state.todo {
+  background: #94a3b8;
+}
+
+.review-label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.review-label textarea {
+  min-height: 118px;
+  resize: vertical;
+}
+
 .text-panel textarea {
   min-height: 260px;
   resize: vertical;
