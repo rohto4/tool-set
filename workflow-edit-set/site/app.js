@@ -121,7 +121,8 @@ const state = {
   edges: [],
   direction: "LR",
   selectedNodeIds: [],
-  connectMode: false
+  connectMode: false,
+  snapToGrid: true
 };
 
 const history = [];
@@ -155,10 +156,14 @@ const undoButton = document.getElementById("undoButton");
 const redoButton = document.getElementById("redoButton");
 const selectAllButton = document.getElementById("selectAllButton");
 const alignLeftButton = document.getElementById("alignLeftButton");
+const alignRightButton = document.getElementById("alignRightButton");
 const alignTopButton = document.getElementById("alignTopButton");
+const alignBottomButton = document.getElementById("alignBottomButton");
 const distributeXButton = document.getElementById("distributeXButton");
+const distributeYButton = document.getElementById("distributeYButton");
 const bringFrontButton = document.getElementById("bringFrontButton");
 const sendBackButton = document.getElementById("sendBackButton");
+const snapButton = document.getElementById("snapButton");
 const textPanelButton = document.getElementById("textPanelButton");
 const loadSampleButton = document.getElementById("loadSampleButton");
 const paletteSearchInput = document.getElementById("paletteSearchInput");
@@ -203,6 +208,7 @@ function decorateNode(node) {
 function serializeDiagram() {
   return {
     direction: state.direction,
+    snapToGrid: state.snapToGrid,
     nodes: state.nodes.map((node) => ({
       id: node.id,
       type: node.type,
@@ -225,6 +231,7 @@ function snapshot() {
 
 function restore(data, options = {}) {
   state.direction = data.direction ?? "LR";
+  state.snapToGrid = data.snapToGrid ?? true;
   state.nodes = Array.isArray(data.nodes) ? data.nodes.map(decorateNode) : [];
   state.edges = Array.isArray(data.edges) ? data.edges.map((edge) => ({
     id: edge.id ?? createId("edge"),
@@ -286,6 +293,16 @@ function clearSelection() {
   setSelectedNodeIds([]);
 }
 
+function snapCoordinate(value) {
+  if (!state.snapToGrid) return value;
+  return Math.round(value / 24) * 24;
+}
+
+function toggleSnap() {
+  state.snapToGrid = !state.snapToGrid;
+  render();
+}
+
 function selectAll() {
   setSelectedNodeIds(state.nodes.map((node) => node.id));
 }
@@ -299,8 +316,8 @@ function toggleConnectMode() {
 function addNode(component, point = null) {
   mutate(() => {
     const offset = state.nodes.length * 24;
-    const x = point?.x ?? 120 + offset;
-    const y = point?.y ?? 120 + offset;
+    const x = snapCoordinate(point?.x ?? 120 + offset);
+    const y = snapCoordinate(point?.y ?? 120 + offset);
     const node = decorateNode({
       id: createId("node"),
       type: component.type,
@@ -359,11 +376,19 @@ function alignSelected(axis) {
   mutate(() => {
     if (axis === "left") {
       const left = Math.min(...selected.map((node) => node.x));
-      selected.forEach((node) => { node.x = left; });
+      selected.forEach((node) => { node.x = snapCoordinate(left); });
+    }
+    if (axis === "right") {
+      const right = Math.max(...selected.map((node) => node.x));
+      selected.forEach((node) => { node.x = snapCoordinate(right); });
     }
     if (axis === "top") {
       const top = Math.min(...selected.map((node) => node.y));
-      selected.forEach((node) => { node.y = top; });
+      selected.forEach((node) => { node.y = snapCoordinate(top); });
+    }
+    if (axis === "bottom") {
+      const bottom = Math.max(...selected.map((node) => node.y));
+      selected.forEach((node) => { node.y = snapCoordinate(bottom); });
     }
   });
 }
@@ -379,7 +404,7 @@ function distributeSelected(axis) {
     const span = end - start;
     const step = span / (selected.length - 1);
     selected.forEach((node, index) => {
-      node[key] = Math.round(start + step * index);
+      node[key] = snapCoordinate(Math.round(start + step * index));
     });
   });
 }
@@ -413,8 +438,8 @@ function pasteClipboard() {
       const clone = decorateNode({
         ...node,
         id: createId("node"),
-        x: node.x + 48,
-        y: node.y + 48
+        x: snapCoordinate(node.x + 48),
+        y: snapCoordinate(node.y + 48)
       });
       idMap.set(node.id, clone.id);
       return clone;
@@ -435,8 +460,8 @@ function nudgeSelected(stepX, stepY) {
   mutate(() => {
     for (const node of state.nodes) {
       if (!state.selectedNodeIds.includes(node.id)) continue;
-      node.x = Math.max(20, node.x + stepX);
-      node.y = Math.max(20, node.y + stepY);
+      node.x = Math.max(20, snapCoordinate(node.x + stepX));
+      node.y = Math.max(20, snapCoordinate(node.y + stepY));
     }
   });
 }
@@ -605,6 +630,7 @@ function updateInspector() {
 
 function renderButtons() {
   connectModeButton.textContent = `Connect: ${state.connectMode ? "On" : "Off"}`;
+  snapButton.textContent = `Snap: ${state.snapToGrid ? "On" : "Off"}`;
   undoButton.disabled = history.length === 0;
   redoButton.disabled = future.length === 0;
 }
@@ -717,8 +743,8 @@ function movePointer(event) {
     for (const item of dragState.positions) {
       const node = state.nodes.find((entry) => entry.id === item.id);
       if (!node) continue;
-      node.x = Math.max(20, item.x + dx);
-      node.y = Math.max(20, item.y + dy);
+      node.x = Math.max(20, snapCoordinate(item.x + dx));
+      node.y = Math.max(20, snapCoordinate(item.y + dy));
     }
     render();
     return;
@@ -1137,10 +1163,14 @@ undoButton.addEventListener("click", undo);
 redoButton.addEventListener("click", redo);
 selectAllButton.addEventListener("click", selectAll);
 alignLeftButton.addEventListener("click", () => alignSelected("left"));
+alignRightButton.addEventListener("click", () => alignSelected("right"));
 alignTopButton.addEventListener("click", () => alignSelected("top"));
+alignBottomButton.addEventListener("click", () => alignSelected("bottom"));
 distributeXButton.addEventListener("click", () => distributeSelected("x"));
+distributeYButton.addEventListener("click", () => distributeSelected("y"));
 bringFrontButton.addEventListener("click", () => reorderSelected("front"));
 sendBackButton.addEventListener("click", () => reorderSelected("back"));
+snapButton.addEventListener("click", toggleSnap);
 textPanelButton.addEventListener("click", () => openTextPanel(true));
 loadSampleButton.addEventListener("click", loadSample);
 exportTextButton.addEventListener("click", () => {

@@ -18,6 +18,7 @@ AWS 風の構成図を手早く組めるローカル Web エディターを提�
 - 接続線の作成
 - Undo / Redo
 - 一般的ショートカット
+- 整列、前面/背面、スナップ
 - テキストDSL Import / Export
 - JSON 保存
 - JSON 読み込み
@@ -70,9 +71,17 @@ AWS 風の構成図を手早く組めるローカル Web エディターを提�
 - `Ctrl/Cmd+X`: Cut
 - `Ctrl/Cmd+V`: Paste
 - `Ctrl/Cmd+D`: Duplicate
+- `Ctrl/Cmd+[`: Send Back
+- `Ctrl/Cmd+]`: Bring Front
 - `Delete` / `Backspace`: Delete
 - `Arrow`: 1px nudge
 - `Shift+Arrow`: 10px nudge
+
+## 配置補助
+
+- 左右上下の整列
+- 水平、垂直の分布
+- グリッドスナップの ON/OFF
 
 ## テキストDSL
 
