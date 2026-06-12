@@ -6,9 +6,11 @@
 2. UTF-8 で読み書きする。
 3. この PJ の作業正本は `G:\devwork\tool-set\workflow-edit-set` 配下とする。
 4. この PJ の文書正本は `G:\devwork\tool-set\workflow-edit-set\docs` 配下とする。
-5. ルートの `tool-set/docs` はこの PJ では使わない。
-6. `AGENTS.md` と `PROJECT.md` は一般テンプレートより優先する。
-7. 一次回答は短くし、必要時だけ詳細化する。
+5. セッション開始プロンプトは `G:\devwork\tool-set\workflow-edit-set\docs\imp\session-prompts\` を使う。
+6. Knowledge Vault の正本は `G:\Knowledge-vault` とし、`workflow-edit-set/docs` 配下に再作成しない。
+7. ルートの `tool-set/docs` はこの PJ では使わない。
+8. `AGENTS.md` と `PROJECT.md` は一般テンプレートより優先する。
+9. 一次回答は短くし、必要時だけ詳細化する。
 
 ## 読み込み順
 
@@ -30,6 +32,8 @@
 - 一時メモ: `docs/memo.md`
 - 現在タスク管理: `docs/imp/current-task-board.md`
 - セッション引継ぎ: `docs/imp/session-handoff.md`
+- セッション開始プロンプト: `docs/imp/session-prompts/`
+- グローバル判断履歴、長期メモ: `G:\Knowledge-vault`
 
 ## 実装ルール
 

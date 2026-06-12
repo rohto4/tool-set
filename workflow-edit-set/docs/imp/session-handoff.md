@@ -7,40 +7,41 @@
 ## Completed
 
 - `workflow-edit-set` を独立した作業単位として整理
-- `workflow-edit-set/docs` 配下へドキュメントを集約
-- 初期版の AWS 風ワークフローエディターを実装
-- 自前アイコンセットを追加してノード中央に表示
-- GitHub 登録、author 設定、定期 commit / push の流れを確立
-- 右カラムに Progress Review を追加
-- 複数のデモテンプレートを即時ロード可能にした
+- `workflow-edit-set/docs` 配下にローカル運用文書を集約
+- セッション開始プロンプトを `docs/imp/session-prompts/` に移設
+- Knowledge Vault の正本を `G:\Knowledge-vault` とする方針を採用
+- `workflow-edit-set/docs` 配下に Knowledge Vault を再作成しない方針を採用
+- 対象運用文書間で正本定義と責務分担を同期
+- `current-task-board.md` と `session-handoff.md` を今回の運用状態へ更新
 
 ## In Progress
 
-- 試用水準の UX をさらに詰める
-- サンプルワークフローの見栄え改善
-- テキスト DSL の使い勝手改善
-- 追加コンポーネントと編集支援機能の拡張
+- なし
 
 ## Next Actions
 
-1. `site/app.js` の構文チェックと軽い動作確認を続行する
-2. 進捗ボードと handoff 文書を実装状況に合わせて更新する
-3. 追加の試用向け改善を積み増す
-4. 定期的に commit / push する
+1. 今後運用ルールを変えるときは、今回更新した8文書を同じターンで見直す
+2. セッション開始プロンプトを追加・更新するときは `docs/imp/session-prompts/README.md` と整合させる
+3. 長期判断履歴を増やす場合は `G:\Knowledge-vault` 側へ追記する
+4. 必要なら commit して文書同期の区切りを残す
 
 ## Notes
 
 - 作業ルートは `G:\devwork\tool-set`
 - このリポジトリは `origin/main` を `https://github.com/rohto4/tool-set.git` に向けて運用している
 - Git author は `rohto4 / rohto111117@gmail.com`
-- ドキュメント配置はこのセッションでは `workflow-edit-set/docs` を基準にする
+- ローカル docs は `workflow-edit-set/docs` を基準にする
+- Knowledge Vault は `G:\Knowledge-vault` を正本として扱う
+- セッション開始プロンプトは `workflow-edit-set/docs/imp/session-prompts/` を使う
+- `workflow-edit-set/docs` 配下に `knowledge-vault` を再作成しない
 
 ## Files Touched Recently
 
-- `workflow-edit-set/site/index.html`
-- `workflow-edit-set/site/styles.css`
-- `workflow-edit-set/site/app.js`
-- `workflow-edit-set/docs/spec/architecture-editor-spec.md`
+- `workflow-edit-set/AGENTS.md`
+- `workflow-edit-set/PROJECT.md`
+- `workflow-edit-set/README.md`
+- `workflow-edit-set/docs/README.md`
+- `workflow-edit-set/docs/guide/project-operations.md`
 - `workflow-edit-set/docs/imp/current-task-board.md`
-- `workflow-edit-set/docs/imp/implementation-log.md`
 - `workflow-edit-set/docs/imp/session-handoff.md`
+- `workflow-edit-set/docs/imp/session-prompts/README.md`

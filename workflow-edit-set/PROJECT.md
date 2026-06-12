@@ -21,6 +21,8 @@
 - 仕様: `docs/spec/`
 - 条件付き参考: `docs/condi-ref/`
 - 実装記録: `docs/imp/`
+- セッション開始プロンプト: `docs/imp/session-prompts/`
+- グローバル Knowledge Vault 正本: `G:\Knowledge-vault`
 
 ## docs 配下の扱い
 
@@ -30,6 +32,14 @@
 - この PJ で使わない配置先: `G:\devwork\tool-set\docs\...`
 
 今後この PJ 用にドキュメントを追加する場合も、必ず `workflow-edit-set/docs` を正本とする。
+
+## ローカル docs と Knowledge Vault の責務分離
+
+- `workflow-edit-set/docs` は、この PJ のローカル運用文書、仕様、セッション進行管理の正本とする。
+- `docs/imp/session-prompts/` は、各セッション開始時に読む基準プロンプトの置き場とする。
+- `G:\Knowledge-vault` は、PJ 横断で参照する判断履歴、長期メモ、Knowledge Vault 本体の正本とする。
+- `workflow-edit-set/docs` 配下には `knowledge-vault` ディレクトリやその複製を再作成しない。
+- `tool-set/docs` はこの PJ の文書置き場として使わない。
 
 ## 実装方針
 
@@ -44,4 +54,3 @@
 2. `workflow-edit-set/docs` を正本にする。
 3. 構成図エディターの最小実装を作る。
 4. ローカルで開いて試せる README と仕様書を用意する。
-

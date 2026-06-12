@@ -2,31 +2,45 @@
 
 ## Active Objective
 
-AWS 風ワークフローエディターを試せる水準まで引き上げ、ショートカット、範囲選択、コンポーネント拡充、テキスト DSL 入出力、進捗可視化まで含めて継続実装する。
+運用文書を同期し、`workflow-edit-set/docs`、`docs/imp/session-prompts/`、`G:\Knowledge-vault` の責務分担を矛盾なく保つ。
 
 ## Requested Tasks
 
-1. `Ctrl+Z`、`Ctrl+Y`、`Ctrl+A` を含む一般的なショートカットを実装する
-2. 範囲選択を実装する
-3. アイコンとコンポーネントを充実させる
-4. 模倣度を上げるため編集機能を厚くする
-5. コンポーネントアイコンを中央配置に整える
-6. Mermaid 参考のテキスト表現による Import / Export を実装する
-7. テキスト記法のリファレンスを用意する
-8. 進捗をレビュー欄で表示できるようにする
+1. 対象運用文書の矛盾を洗い出して修正する
+2. `workflow-edit-set/docs` の責務をローカル運用文書の正本として統一する
+3. `docs/imp/session-prompts/` の責務をセッション開始プロンプト置き場として統一する
+4. `G:\Knowledge-vault` の責務を Knowledge Vault 正本として統一する
+5. `docs/knowledge-vault` を再作成しないルールを明文化する
+6. 完了済みの移設や運用変更が未完了扱いで残っている箇所を是正する
+7. `current-task-board.md` と `session-handoff.md` を今回の文書同期作業に追随させる
 
-## Phases
+## Tracks
 
-- [x] Phase 0: 運用確認、Git、作業基盤
-- [x] Phase 0.5: `tool-set` の GitHub 登録
-- [x] Phase 1: Undo / Redo / Select All / Delete / Duplicate など一般的ショートカット
-- [x] Phase 2: 範囲選択、複数選択、複数移動
-- [x] Phase 3: コンポーネントカテゴリとアイコン拡充
-- [x] Phase 4: Mermaid 参考 DSL の Import / Export
-- [x] Phase 5: DSL リファレンス整備
-- [x] Phase 6: 進捗レビューと試用向け磨き込み
-- [ ] Phase 7: 追加 UX 改善と模倣度向上
+### Track A: 文書同期
+
+- [x] 対象8文書の矛盾箇所を横断レビューする
+- [x] 正本の定義を各文書へ統一反映する
+- [x] 完了済み移設を未完了扱いしている記述を解消する
+
+### Track B: セッション運用
+
+- [x] `current-task-board.md` を今回の文書同期作業に合わせる
+- [x] `session-handoff.md` を最新の運用状態に合わせる
+- [x] `session-prompts/README.md` の更新ルールを実在ファイル基準に直す
+
+### Track C: Knowledge Vault 運用
+
+- [x] `G:\Knowledge-vault` を正本とする記述を統一する
+- [x] `workflow-edit-set/docs` に Knowledge Vault を再作成しないルールを明文化する
+- [x] ローカル docs とグローバル Knowledge Vault の責務分離を明文化する
+
+## Session Assets
+
+- セッション開始プロンプト:
+  `workflow-edit-set/docs/imp/session-prompts/`
+- グローバル Knowledge Vault:
+  `G:\Knowledge-vault`
 
 ## Current Focus
 
-Phase 7 として、試して判断できる品質をさらに上げるための UX 改善とデモ品質向上を進める。
+今回の文書同期は完了。次回以降はこの運用基準を崩さず、必要な更新が出たときだけ対象文書を同時更新する。アプリ実装や UI 改修はこのボードの対象外とする。

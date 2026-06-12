@@ -3,9 +3,11 @@
 ## 運用の要点
 
 - この PJ は `workflow-edit-set` 配下だけで完結させる。
-- 文書の正本は常に `docs/` 配下に置く。
+- ローカル文書の正本は常に `docs/` 配下に置く。
 - 仕様未確定の案は `spec/` ではなく `condi-ref/` に置く。
 - 実装した内容や変更理由は `imp/` に残す。
+- セッション開始プロンプトは `docs/imp/session-prompts/` を使う。
+- Knowledge Vault の正本は `G:\Knowledge-vault` とし、`docs/` 配下に複製を作らない。
 
 ## ディレクトリ運用
 
@@ -18,4 +20,4 @@
 - 仕様変更: `docs/spec/architecture-editor-spec.md`
 - 運用変更: この文書
 - 大きな実装変更: `docs/imp/implementation-log.md`
-
+- セッション進行変更: `docs/imp/current-task-board.md` と `docs/imp/session-handoff.md`

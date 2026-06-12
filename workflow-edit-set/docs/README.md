@@ -1,18 +1,23 @@
 # workflow-edit-set docs
 
-この PJ の文書正本はこの `docs/` 配下です。
+この PJ のローカル文書は `workflow-edit-set/docs/` 配下で管理する。ここは PJ ローカルの運用文書、仕様、セッション管理の正本であり、Knowledge Vault 本体の保存場所ではない。
 
-## 構成
+## Categories
 
-- `guide/`: 運用ガイド、判断基準
-- `spec/`: 確定仕様
-- `condi-ref/`: 条件付き参考、比較、保留案
-- `imp/`: 実装記録、進捗
-- `memo.md`: 一時メモ
+- `guide/`
+  運用ガイド、作業ルール、進め方
+- `spec/`
+  仕様、DSL、設計対象の説明
+- `condi-ref/`
+  条件、方向性、参照メモ
+- `imp/`
+  実装進捗、タスク、handoff、セッション開始プロンプト
+- `memo.md`
+  一時メモ
 
-## この PJ 固有ルール
+## Notes
 
-- `tool-set/docs` ではなく `tool-set/workflow-edit-set/docs` を使う
-- 文書追加時は適切な分類へ置く
-- 大きな更新時は各 summary を更新する
-
+- セッション開始プロンプトの正本は `imp/session-prompts/` に置く
+- グローバル Knowledge Vault の正本は `G:\Knowledge-vault` とする
+- `docs/` 配下には `knowledge-vault/` を再作成せず、Knowledge Vault の複製も持たない
+- `current-task-board.md` と `session-handoff.md` はローカル進行管理用であり、長期判断履歴の正本は `G:\Knowledge-vault` 側に残す
