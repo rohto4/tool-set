@@ -154,8 +154,14 @@ const svgButton = document.getElementById("svgButton");
 const undoButton = document.getElementById("undoButton");
 const redoButton = document.getElementById("redoButton");
 const selectAllButton = document.getElementById("selectAllButton");
+const alignLeftButton = document.getElementById("alignLeftButton");
+const alignTopButton = document.getElementById("alignTopButton");
+const distributeXButton = document.getElementById("distributeXButton");
+const bringFrontButton = document.getElementById("bringFrontButton");
+const sendBackButton = document.getElementById("sendBackButton");
 const textPanelButton = document.getElementById("textPanelButton");
 const loadSampleButton = document.getElementById("loadSampleButton");
+const paletteSearchInput = document.getElementById("paletteSearchInput");
 const fileInput = document.getElementById("fileInput");
 const textPanel = document.getElementById("textPanel");
 const textArea = document.getElementById("textArea");
@@ -347,6 +353,47 @@ function duplicateSelected() {
   });
 }
 
+function alignSelected(axis) {
+  const selected = getSelectedNodes();
+  if (selected.length < 2) return;
+  mutate(() => {
+    if (axis === "left") {
+      const left = Math.min(...selected.map((node) => node.x));
+      selected.forEach((node) => { node.x = left; });
+    }
+    if (axis === "top") {
+      const top = Math.min(...selected.map((node) => node.y));
+      selected.forEach((node) => { node.y = top; });
+    }
+  });
+}
+
+function distributeSelected(axis) {
+  const selected = [...getSelectedNodes()];
+  if (selected.length < 3) return;
+  mutate(() => {
+    const key = axis === "x" ? "x" : "y";
+    selected.sort((a, b) => a[key] - b[key]);
+    const start = selected[0][key];
+    const end = selected[selected.length - 1][key];
+    const span = end - start;
+    const step = span / (selected.length - 1);
+    selected.forEach((node, index) => {
+      node[key] = Math.round(start + step * index);
+    });
+  });
+}
+
+function reorderSelected(direction) {
+  if (state.selectedNodeIds.length === 0) return;
+  mutate(() => {
+    const selectedSet = new Set(state.selectedNodeIds);
+    const selected = state.nodes.filter((node) => selectedSet.has(node.id));
+    const unselected = state.nodes.filter((node) => !selectedSet.has(node.id));
+    state.nodes = direction === "front" ? [...unselected, ...selected] : [...selected, ...unselected];
+  });
+}
+
 function copySelected() {
   const selected = getSelectedNodes();
   if (selected.length === 0) return;
@@ -431,13 +478,20 @@ function getNodeCenter(node) {
 
 function renderPalette() {
   palette.innerHTML = "";
+  const query = paletteSearchInput.value.trim().toLowerCase();
   for (const group of componentCatalog) {
+    const visibleItems = group.items.filter((item) => {
+      if (!query) return true;
+      const haystack = [item.type, item.label, item.description, group.title].join(" ").toLowerCase();
+      return haystack.includes(query);
+    });
+    if (visibleItems.length === 0) continue;
     const section = document.createElement("section");
     section.className = "palette-group";
     section.innerHTML = `<h3>${group.title}</h3>`;
     const list = document.createElement("div");
     list.className = "palette-group-list";
-    for (const item of group.items) {
+    for (const item of visibleItems) {
       const component = getComponent(item.type);
       const button = document.createElement("button");
       button.type = "button";
@@ -926,6 +980,16 @@ function handleKeyboard(event) {
     exportJson();
     return;
   }
+  if (mod && event.key === "]") {
+    event.preventDefault();
+    reorderSelected("front");
+    return;
+  }
+  if (mod && event.key === "[") {
+    event.preventDefault();
+    reorderSelected("back");
+    return;
+  }
   if (mod && event.key.toLowerCase() === "e") {
     event.preventDefault();
     openTextPanel(true);
@@ -996,6 +1060,11 @@ svgButton.addEventListener("click", exportSvg);
 undoButton.addEventListener("click", undo);
 redoButton.addEventListener("click", redo);
 selectAllButton.addEventListener("click", selectAll);
+alignLeftButton.addEventListener("click", () => alignSelected("left"));
+alignTopButton.addEventListener("click", () => alignSelected("top"));
+distributeXButton.addEventListener("click", () => distributeSelected("x"));
+bringFrontButton.addEventListener("click", () => reorderSelected("front"));
+sendBackButton.addEventListener("click", () => reorderSelected("back"));
 textPanelButton.addEventListener("click", () => openTextPanel(true));
 loadSampleButton.addEventListener("click", loadSample);
 exportTextButton.addEventListener("click", () => {
@@ -1006,6 +1075,7 @@ importTextButton.addEventListener("click", importText);
 downloadTextButton.addEventListener("click", downloadTextFile);
 copyTextButton.addEventListener("click", copyTextToClipboard);
 closeTextButton.addEventListener("click", closeTextPanel);
+paletteSearchInput.addEventListener("input", renderPalette);
 
 fileInput.addEventListener("change", (event) => {
   const file = event.target.files?.[0];

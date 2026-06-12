@@ -17,6 +17,11 @@
           <button id="undoButton" class="ghost-button">Undo</button>
           <button id="redoButton" class="ghost-button">Redo</button>
           <button id="selectAllButton" class="ghost-button">Select All</button>
+          <button id="alignLeftButton" class="ghost-button">Align Left</button>
+          <button id="alignTopButton" class="ghost-button">Align Top</button>
+          <button id="distributeXButton" class="ghost-button">Distribute X</button>
+          <button id="bringFrontButton" class="ghost-button">Bring Front</button>
+          <button id="sendBackButton" class="ghost-button">Send Back</button>
           <button id="connectModeButton" class="ghost-button">Connect: Off</button>
           <button id="duplicateButton" class="ghost-button">Duplicate</button>
           <button id="clearButton" class="ghost-button">Clear</button>
@@ -34,6 +39,9 @@
           <div class="panel-header">
             <h2>Palette</h2>
             <p>Add components by category.</p>
+          </div>
+          <div class="palette-search-wrap">
+            <input id="paletteSearchInput" type="search" placeholder="Search components" />
           </div>
           <div id="palette" class="palette-list"></div>
         </aside>

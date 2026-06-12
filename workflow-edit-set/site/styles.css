@@ -127,6 +127,18 @@ h3 {
   overflow: auto;
 }
 
+.palette-search-wrap {
+  padding: 0 16px 12px;
+}
+
+.palette-search-wrap input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: white;
+}
+
 .palette-group {
   display: grid;
   gap: 10px;
