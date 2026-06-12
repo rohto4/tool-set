@@ -322,6 +322,12 @@ h3 {
   stroke: #4b5563;
   stroke-width: 3;
   fill: none;
+  cursor: pointer;
+}
+
+.edge-line.selected {
+  stroke: #0284c7;
+  stroke-width: 4;
 }
 
 .marquee {
@@ -399,6 +405,33 @@ h3 {
 
 .hidden {
   display: none;
+}
+
+.help-panel {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 40;
+}
+
+.help-card {
+  width: min(620px, 100%);
+  border-radius: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+.help-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
 }
 
 .primary-button,

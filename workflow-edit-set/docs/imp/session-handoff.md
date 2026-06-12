@@ -21,6 +21,7 @@
 - 整列、前面/背面、パレット検索を追加済み
 - Mermaid 風 `flowchart` 書式も読めるように拡張済み
 - Snap to Grid の ON/OFF と追加整列ボタンを追加済み
+- PNG 書き出し、ヘルプ表示、自動保存、エッジ選択削除を追加済み
 
 ## Next Actions
 

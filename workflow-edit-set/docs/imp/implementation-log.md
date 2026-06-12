@@ -14,3 +14,4 @@
 - 整列、前面/背面、パレット検索を追加
 - Mermaid 風 `flowchart` 書式の import/export とテキストファイル取り込みを追加
 - Snap to Grid と追加整列操作を追加
+- PNG 書き出し、Quick Help、localStorage 自動保存、エッジ選択削除を追加

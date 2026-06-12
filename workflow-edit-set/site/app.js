@@ -122,7 +122,8 @@ const state = {
   direction: "LR",
   selectedNodeIds: [],
   connectMode: false,
-  snapToGrid: true
+  snapToGrid: true,
+  selectedEdgeId: null
 };
 
 const history = [];
@@ -152,6 +153,7 @@ const clearButton = document.getElementById("clearButton");
 const saveButton = document.getElementById("saveButton");
 const loadButton = document.getElementById("loadButton");
 const svgButton = document.getElementById("svgButton");
+const pngButton = document.getElementById("pngButton");
 const undoButton = document.getElementById("undoButton");
 const redoButton = document.getElementById("redoButton");
 const selectAllButton = document.getElementById("selectAllButton");
@@ -166,6 +168,7 @@ const sendBackButton = document.getElementById("sendBackButton");
 const snapButton = document.getElementById("snapButton");
 const textPanelButton = document.getElementById("textPanelButton");
 const loadSampleButton = document.getElementById("loadSampleButton");
+const helpButton = document.getElementById("helpButton");
 const paletteSearchInput = document.getElementById("paletteSearchInput");
 const fileInput = document.getElementById("fileInput");
 const textPanel = document.getElementById("textPanel");
@@ -177,6 +180,10 @@ const downloadTextButton = document.getElementById("downloadTextButton");
 const copyTextButton = document.getElementById("copyTextButton");
 const closeTextButton = document.getElementById("closeTextButton");
 const statusLabel = document.getElementById("statusLabel");
+const helpPanel = document.getElementById("helpPanel");
+const closeHelpButton = document.getElementById("closeHelpButton");
+
+const STORAGE_KEY = "workflow-edit-set.autosave.v1";
 
 function createId(prefix) {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -239,6 +246,7 @@ function restore(data, options = {}) {
     to: edge.to
   })) : [];
   state.selectedNodeIds = options.keepSelection ? state.selectedNodeIds.filter((id) => state.nodes.some((node) => node.id === id)) : [];
+  state.selectedEdgeId = null;
   connectStartId = null;
   render();
 }
@@ -260,6 +268,7 @@ function mutate(action, options = {}) {
   if (options.clearSelection) {
     state.selectedNodeIds = [];
   }
+  persistDiagram();
   render();
 }
 
@@ -286,6 +295,7 @@ function getSelectedNodes() {
 
 function setSelectedNodeIds(ids) {
   state.selectedNodeIds = [...new Set(ids)].filter((id) => state.nodes.some((node) => node.id === id));
+  state.selectedEdgeId = null;
   render();
 }
 
@@ -332,12 +342,16 @@ function addNode(component, point = null) {
 }
 
 function deleteSelected() {
-  if (state.selectedNodeIds.length === 0) return;
+  if (state.selectedNodeIds.length === 0 && !state.selectedEdgeId) return;
   const ids = new Set(state.selectedNodeIds);
   mutate(() => {
     state.nodes = state.nodes.filter((node) => !ids.has(node.id));
-    state.edges = state.edges.filter((edge) => !ids.has(edge.from) && !ids.has(edge.to));
+    state.edges = state.edges.filter((edge) => {
+      if (state.selectedEdgeId && edge.id === state.selectedEdgeId) return false;
+      return !ids.has(edge.from) && !ids.has(edge.to);
+    });
     state.selectedNodeIds = [];
+    state.selectedEdgeId = null;
   });
 }
 
@@ -478,12 +492,38 @@ function closeTextPanel() {
   textPanel.classList.add("hidden");
 }
 
+function openHelpPanel() {
+  helpPanel.classList.remove("hidden");
+}
+
+function closeHelpPanel() {
+  helpPanel.classList.add("hidden");
+}
+
 function setTextStatus(message) {
   textStatus.textContent = message;
 }
 
 function setStatus(message) {
   statusLabel.textContent = message;
+}
+
+function persistDiagram() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeDiagram()));
+  } catch (_error) {
+    // Ignore storage quota and unavailable storage.
+  }
+}
+
+function loadPersistedDiagram() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_error) {
+    return null;
+  }
 }
 
 function getCanvasPoint(event) {
@@ -545,10 +585,19 @@ function renderEdges() {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const curve = Math.max(60, Math.abs(toCenter.x - fromCenter.x) * 0.35);
     path.setAttribute("class", "edge-line");
+    if (state.selectedEdgeId === edge.id) {
+      path.classList.add("selected");
+    }
     path.setAttribute(
       "d",
       `M ${fromCenter.x} ${fromCenter.y} C ${fromCenter.x + curve} ${fromCenter.y}, ${toCenter.x - curve} ${toCenter.y}, ${toCenter.x} ${toCenter.y}`
     );
+    path.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.selectedNodeIds = [];
+      state.selectedEdgeId = edge.id;
+      render();
+    });
     edgeLayer.appendChild(path);
   }
 }
@@ -641,7 +690,8 @@ function render() {
   renderMarquee();
   updateInspector();
   renderButtons();
-  setStatus(`${state.selectedNodeIds.length} selected / ${state.nodes.length} nodes / ${state.edges.length} links`);
+  const edgeSuffix = state.selectedEdgeId ? " / 1 link selected" : "";
+  setStatus(`${state.selectedNodeIds.length} selected / ${state.nodes.length} nodes / ${state.edges.length} links${edgeSuffix}`);
 }
 
 function selectNodesInMarquee(additive = false) {
@@ -859,6 +909,53 @@ function exportSvg() {
 
   const blob = new Blob([svg], { type: "image/svg+xml" });
   downloadBlob(blob, "workflow-edit-set-diagram.svg");
+}
+
+async function exportPng() {
+  const nodesMarkup = state.nodes.map((node) => `
+    <g transform="translate(${node.x}, ${node.y})">
+      <rect rx="22" ry="22" width="220" height="88" fill="#10243c" stroke="${node.color}" stroke-opacity="0.25" />
+      <rect x="14" y="12" rx="18" ry="18" width="64" height="64" fill="#17324f" stroke="#ffffff" stroke-opacity="0.08" />
+      <text x="96" y="34" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#bae6fd">${escapeXml(node.type.toUpperCase())}</text>
+      <text x="96" y="58" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#f8fbff">${escapeXml(node.label)}</text>
+    </g>
+  `).join("");
+
+  const edgesMarkup = state.edges.map((edge) => {
+    const from = state.nodes.find((node) => node.id === edge.from);
+    const to = state.nodes.find((node) => node.id === edge.to);
+    if (!from || !to) return "";
+    const fromCenter = getNodeCenter(from);
+    const toCenter = getNodeCenter(to);
+    const curve = Math.max(60, Math.abs(toCenter.x - fromCenter.x) * 0.35);
+    return `<path d="M ${fromCenter.x} ${fromCenter.y} C ${fromCenter.x + curve} ${fromCenter.y}, ${toCenter.x - curve} ${toCenter.y}, ${toCenter.x} ${toCenter.y}" stroke="#4b5563" stroke-width="3" fill="none" />`;
+  }).join("");
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+      <rect width="1600" height="1000" fill="#f8fbff" />
+      ${edgesMarkup}
+      ${nodesMarkup}
+    </svg>
+  `.trim();
+
+  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const image = new Image();
+  image.onload = () => {
+    const canvasElement = document.createElement("canvas");
+    canvasElement.width = 1600;
+    canvasElement.height = 1000;
+    const context = canvasElement.getContext("2d");
+    context.drawImage(image, 0, 0);
+    canvasElement.toBlob((pngBlob) => {
+      if (pngBlob) {
+        downloadBlob(pngBlob, "workflow-edit-set-diagram.png");
+      }
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  };
+  image.src = url;
 }
 
 function exportText() {
@@ -1107,6 +1204,7 @@ function handleKeyboard(event) {
     connectStartId = null;
     clearSelection();
     closeTextPanel();
+    closeHelpPanel();
     return;
   }
 
@@ -1159,6 +1257,7 @@ clearButton.addEventListener("click", () => {
 saveButton.addEventListener("click", exportJson);
 loadButton.addEventListener("click", () => fileInput.click());
 svgButton.addEventListener("click", exportSvg);
+pngButton.addEventListener("click", exportPng);
 undoButton.addEventListener("click", undo);
 redoButton.addEventListener("click", redo);
 selectAllButton.addEventListener("click", selectAll);
@@ -1173,6 +1272,7 @@ sendBackButton.addEventListener("click", () => reorderSelected("back"));
 snapButton.addEventListener("click", toggleSnap);
 textPanelButton.addEventListener("click", () => openTextPanel(true));
 loadSampleButton.addEventListener("click", loadSample);
+helpButton.addEventListener("click", openHelpPanel);
 exportTextButton.addEventListener("click", () => {
   textArea.value = exportText();
   setTextStatus("Exported current workflow to text.");
@@ -1182,6 +1282,12 @@ downloadTextButton.addEventListener("click", downloadTextFile);
 copyTextButton.addEventListener("click", copyTextToClipboard);
 closeTextButton.addEventListener("click", closeTextPanel);
 paletteSearchInput.addEventListener("input", renderPalette);
+closeHelpButton.addEventListener("click", closeHelpPanel);
+helpPanel.addEventListener("click", (event) => {
+  if (event.target === helpPanel) {
+    closeHelpPanel();
+  }
+});
 
 fileInput.addEventListener("change", (event) => {
   const file = event.target.files?.[0];
@@ -1193,11 +1299,13 @@ canvas.addEventListener("mousedown", startMarquee);
 canvas.addEventListener("click", (event) => {
   if (Date.now() - lastCanvasGestureAt < 120) return;
   if (event.target.closest(".diagram-node")) return;
+  if (event.target.closest(".edge-line")) return;
   if (state.connectMode) {
     connectStartId = null;
     render();
     return;
   }
+  state.selectedEdgeId = null;
   if (!event.shiftKey) {
     clearSelection();
   }
@@ -1208,5 +1316,5 @@ window.addEventListener("mouseup", endPointer);
 window.addEventListener("keydown", handleKeyboard);
 
 renderPalette();
-restore(sampleState);
+restore(loadPersistedDiagram() ?? sampleState);
 textArea.value = exportText();

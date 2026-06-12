@@ -30,10 +30,12 @@
           <button id="duplicateButton" class="ghost-button">Duplicate</button>
           <button id="clearButton" class="ghost-button">Clear</button>
           <button id="loadSampleButton" class="ghost-button">Load Sample</button>
+          <button id="helpButton" class="ghost-button">Help</button>
           <button id="textPanelButton" class="ghost-button">Text I/O</button>
           <button id="saveButton" class="primary-button">Export JSON</button>
           <button id="loadButton" class="ghost-button">Import JSON</button>
           <button id="svgButton" class="ghost-button">Export SVG</button>
+          <button id="pngButton" class="ghost-button">Export PNG</button>
           <input id="fileInput" type="file" accept="application/json,text/plain,.json,.txt,.workflow" hidden />
         </div>
       </header>
@@ -119,6 +121,30 @@
         </aside>
       </main>
     </div>
+
+    <section id="helpPanel" class="help-panel hidden">
+      <div class="help-card">
+        <div class="panel-header panel-header-tight">
+          <h2>Quick Help</h2>
+          <p>Demo-ready shortcuts and actions.</p>
+        </div>
+        <ul class="help-list">
+          <li><code>Ctrl/Cmd+Z</code>: Undo</li>
+          <li><code>Ctrl/Cmd+Y</code> or <code>Ctrl/Cmd+Shift+Z</code>: Redo</li>
+          <li><code>Ctrl/Cmd+A</code>: Select all</li>
+          <li><code>Ctrl/Cmd+C / X / V</code>: Copy, cut, paste</li>
+          <li><code>Ctrl/Cmd+D</code>: Duplicate</li>
+          <li><code>Delete</code>: Delete selection or edge</li>
+          <li><code>Arrows</code>: Nudge, <code>Shift+Arrows</code>: fast nudge</li>
+          <li><code>Ctrl/Cmd+[</code> and <code>Ctrl/Cmd+]</code>: Layer order</li>
+          <li>Drag on canvas: Marquee select</li>
+          <li>Connect mode: click source then target</li>
+        </ul>
+        <div class="text-panel-actions">
+          <button id="closeHelpButton" type="button" class="primary-button">Close</button>
+        </div>
+      </div>
+    </section>
 
     <template id="nodeTemplate">
       <button class="diagram-node" type="button">
