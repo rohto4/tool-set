@@ -1,0 +1,113 @@
+{
+  "name": "codex-context-monitor",
+  "displayName": "Codex Context Monitor",
+  "description": "Monitor Codex session context-window usage in real time.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:codexContextMonitor.overlayView",
+    "onCommand:codexContextMonitor.start",
+    "onCommand:codexContextMonitor.stop",
+    "onCommand:codexContextMonitor.showDetails",
+    "onCommand:codexContextMonitor.pinSession",
+    "onCommand:codexContextMonitor.unpinSession",
+    "onCommand:codexContextMonitor.focusOverlay"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codexContextMonitor.start",
+        "title": "Codex Context Monitor: Start"
+      },
+      {
+        "command": "codexContextMonitor.stop",
+        "title": "Codex Context Monitor: Stop"
+      },
+      {
+        "command": "codexContextMonitor.showDetails",
+        "title": "Codex Context Monitor: Show Details"
+      },
+      {
+        "command": "codexContextMonitor.pinSession",
+        "title": "Codex Context Monitor: Pin Session By ID"
+      },
+      {
+        "command": "codexContextMonitor.unpinSession",
+        "title": "Codex Context Monitor: Unpin Session"
+      },
+      {
+        "command": "codexContextMonitor.focusOverlay",
+        "title": "Codex Context Monitor: Focus Overlay View"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "codexContextMonitor.overlayView",
+          "name": "Codex Context Overlay",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Codex Context Monitor",
+      "properties": {
+        "codexContextMonitor.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start monitor automatically on VS Code startup."
+        },
+        "codexContextMonitor.refreshIntervalMs": {
+          "type": "number",
+          "default": 1500,
+          "minimum": 500,
+          "description": "Polling interval in milliseconds."
+        },
+        "codexContextMonitor.maxSessions": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 3,
+          "description": "How many recent sessions to track in status bar."
+        },
+        "codexContextMonitor.activeWithinSec": {
+          "type": "number",
+          "default": 120,
+          "minimum": 10,
+          "maximum": 3600,
+          "description": "Treat a session as active if token_count was updated within this many seconds."
+        },
+        "codexContextMonitor.warningThreshold": {
+          "type": "number",
+          "default": 0.8,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Warn color threshold for context usage ratio."
+        },
+        "codexContextMonitor.criticalThreshold": {
+          "type": "number",
+          "default": 0.92,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Critical color threshold for context usage ratio."
+        },
+        "codexContextMonitor.codexHome": {
+          "type": "string",
+          "default": "",
+          "description": "Override Codex home path. Empty means ~/.codex."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check extension.js"
+  }
+}

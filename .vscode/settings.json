@@ -1,0 +1,29 @@
+{
+  "terminal.integrated.fontFamily": "IBM Plex Mono, Consolas, 'Courier New', monospace",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.lineHeight": 1.15,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.cursorBlinking": false,
+  "workbench.colorCustomizations": {
+    "terminal.background": "#F7F7F5",
+    "terminal.foreground": "#111111",
+    "terminalCursor.foreground": "#111111",
+    "terminal.selectionBackground": "#D9D9D4",
+    "terminal.ansiBlack": "#111111",
+    "terminal.ansiRed": "#9C2B2B",
+    "terminal.ansiGreen": "#2F5D3A",
+    "terminal.ansiYellow": "#7A5A18",
+    "terminal.ansiBlue": "#1F4D7A",
+    "terminal.ansiMagenta": "#5C3D70",
+    "terminal.ansiCyan": "#1F6B6B",
+    "terminal.ansiWhite": "#E8E8E3",
+    "terminal.ansiBrightBlack": "#5A5A5A",
+    "terminal.ansiBrightRed": "#C43D3D",
+    "terminal.ansiBrightGreen": "#3D7A4C",
+    "terminal.ansiBrightYellow": "#9C761E",
+    "terminal.ansiBrightBlue": "#2E679E",
+    "terminal.ansiBrightMagenta": "#7A5496",
+    "terminal.ansiBrightCyan": "#2A8A8A",
+    "terminal.ansiBrightWhite": "#FFFFFF"
+  }
+}

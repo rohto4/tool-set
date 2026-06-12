@@ -1,0 +1,715 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 1
+            }
+          ]
+        }
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        176
+      ],
+      "id": "ce2574e2-c2ae-4a16-b79a-31556de7b132"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "feeds",
+              "value": "https://www.google.com/alerts/feeds/03032972658729420425/1759276382585817244\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Feed List",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -2368,
+        176
+      ],
+      "id": "0284e728-2399-4921-b7d7-fc62f0923dfd"
+    },
+    {
+      "parameters": {
+        "jsCode": "const feeds = ($json.feeds || '').split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);\nreturn feeds.map(url => ({json:{feedUrl:url}}));"
+      },
+      "name": "Explode Feeds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2208,
+        176
+      ],
+      "id": "97d5ca5e-e416-4720-a877-0a64cab2af2a"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "name": "Split Articles",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1840,
+        176
+      ],
+      "id": "a2fd0513-102f-4f2a-a95b-0ef37457bb31"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.resolvedUrl}}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "name": "HTTP Fetch HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1280,
+        64
+      ],
+      "id": "c622791c-f18d-4f28-b27d-09c7d39f278d"
+    },
+    {
+      "parameters": {
+        "jsCode": "function pickHtml(j) {\n  return j?.body ?? j?.data ?? j?.response ?? j?.html ?? j?.fetchedHtml ?? j?.content ?? j?.contentSnippet ?? j?.summary ?? j?.description ?? '';\n}\n\nfunction getMetaContent(html, propertyOrName) {\n  const re = new RegExp(\n    `<meta[^>]+(?:property|name)=[\\\"']${propertyOrName}[\\\"'][^>]+content=[\\\"']([^\\\"']+)[\\\"'][^>]*>`,\n    'i'\n  );\n  const m = html.match(re);\n  return m ? m[1].trim() : '';\n}\n\nfunction stripHtmlRough(html = '') {\n  return String(html)\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nreturn items.map((item) => {\n  const j = item.json;\n  const html = pickHtml(j);\n\n  const ogImage =\n    getMetaContent(html, 'og:image') ||\n    getMetaContent(html, 'twitter:image') ||\n    '';\n  const ogSite = getMetaContent(html, 'og:site_name') || '';\n  const ogTitle = getMetaContent(html, 'og:title') || '';\n  const ogDesc = getMetaContent(html, 'og:description') || '';\n\n  const roughText = stripHtmlRough(html);\n\n  return {\n    json: {\n      ...j,\n      fetchedHtml: html,\n      thumbnailUrl: j.thumbnailUrl || ogImage,\n      site: j.site || ogSite,\n      fetchedTitleHint: ogTitle,\n      fetchedDescHint: ogDesc,\n      fetchedTextRough: roughText\n    }\n  };\n});"
+      },
+      "name": "Extract HTML (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        192
+      ],
+      "id": "07b9ab9e-0497-44e7-b444-5f5e50d58dfb"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FNV-1a 32bit（crypto不要）\nfunction fnv1a32(str) {\n  let h = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    h ^= str.charCodeAt(i);\n    h = Math.imul(h, 0x01000193);\n  }\n  // unsigned 32bit → hex\n  return (h >>> 0).toString(16).padStart(8, '0');\n}\n\nfunction stripHtml(html = '') {\n  return String(html)\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction normalizeText(text = '', maxLen = 6000) {\n  let t = String(text).replace(/\\s+/g, ' ').trim();\n  if (t.length > maxLen) t = t.slice(0, maxLen) + '…';\n  return t;\n}\n\nfunction shouldPreSkip({ title, text }) {\n  const t = (title || '').toLowerCase();\n  if (t.includes('pr') || t.includes('広告') || t.includes('スポンサー')) return true;\n  if (!text || text.length < 600) return true;\n  return false;\n}\n\nfunction safeDate(v) {\n  return v ? String(v) : '';\n}\n\nreturn items.map((item) => {\n  const j = item.json;\n\n  const title = j.title || j.fetchedTitleHint || '';\n  const link = j.link ?? j.url ?? '';\n  const publishedAt = safeDate(j.isoDate ?? j.pubDate ?? j.published ?? j.publishedAt ?? '');\n  const feedUrl = j.feedUrl ?? '';\n\n  const rssRaw = j.content ?? j.contentSnippet ?? j.summary ?? j.description ?? '';\n  const rssText = normalizeText(stripHtml(rssRaw), 3000);\n\n  const httpText = normalizeText(j.fetchedTextRough || '', 8000);\n  const text = httpText.length > 800 ? httpText : rssText;\n\n  const domain = (() => { try { return new URL(link).hostname; } catch { return ''; } })();\n  const hashBase = `${title}\\n${domain}\\n${text.slice(0, 2000)}`;\n  const hash = fnv1a32(hashBase);\n\n  const preSkip = shouldPreSkip({ title, text });\n\n  // Gemini: 分類/タグ/重要度/summary/action + カラム分割\n  const geminiInput = {\n    task: \"rss_article_classify_and_split\",\n    input: {\n      title,\n      link,\n      feedUrl,\n      site: j.site || domain,\n      publishedAt,\n      thumbnailUrl: j.thumbnailUrl || '',\n      text\n    },\n    output_schema: {\n      action: \"string (input|skip|review)\",\n      tags: \"string[]\",\n      importance: \"integer (1-5)\",\n      summary: \"string (日本語 5-7行)\",\n      columns: {\n        source: \"string (ソース名の推定/整形)\",\n        site: \"string (サイト名)\",\n        topics: \"string[]\",\n        entities: \"string[]\",\n        why: \"string (短く)\"\n      }\n    },\n    constraints: [\n      \"出力はJSONのみ\",\n      \"憶測で断定しない\",\n      \"広告/PR/同内容/低情報量なら action=skip を推奨\",\n      \"タグは短く、最大10個程度\"\n    ]\n  };\n\n  return {\n    json: {\n      ...j,\n      title,\n      link,\n      feedUrl,\n      site: j.site || domain,\n      thumbnailUrl: j.thumbnailUrl || '',\n      publishedAt,\n      normalizedText: text,\n      hash,\n      preSkip,\n      geminiPrompt: JSON.stringify(geminiInput),\n\n      // Notion初期値\n      readStatus: \"Unread\",\n      source: feedUrl || domain\n    }\n  };\n});"
+      },
+      "name": "Normalize (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -912,
+        192
+      ],
+      "id": "ea272528-6bb7-48ca-ace8-bc6c12925adc"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "78c6990d-07d7-4163-a8e2-7f40f6c1c57d",
+              "leftValue": "=={{$json.exists === true}}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF Already",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        128
+      ],
+      "id": "0b732bc9-d179-4985-a35d-2dbf26c9cb13"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "69c137a8-077d-4fa5-b0ba-09f2b5794d7a",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF PreSkip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        352
+      ],
+      "id": "58954d71-11eb-4abf-a786-c86dc35dfdc9"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse/Type(Code) 置換：元データ保持 + 最低限Notion用フィールド生成\nfunction pick(obj, path, fallback = '') {\n  try {\n    return path.split('.').reduce((a, k) => (a && a[k] != null ? a[k] : null), obj) ?? fallback;\n  } catch { return fallback; }\n}\n\nreturn items.map(item => {\n  // ここで item.json が {\"exists\":false} だけなら、前段が上書きしています\n  const j = item.json ?? {};\n\n  // exists は前段SQLの結果から来ているはず\n  const exists = !!j.exists;\n\n  // 元データが残っている前提で Notion用を作る（無ければ空になる）\n  const title = j.title || j.fetchedTitleHint || 'RSS item';\n  const link = j.link || j.resolvedUrl || '';\n  const publishedAt = j.publishedAt || '';\n  const hash = j.hash || '';\n\n  // Gemini未実行でも落ちないデフォルト\n  const action = j.action || (j.preSkip ? 'skip' : 'input');\n  const importance = Number.isFinite(Number(j.importance)) ? Number(j.importance) : 3;\n  const tags = Array.isArray(j.tags) ? j.tags : [];\n  const summary = j.summary || '';\n\n  return {\n    json: {\n      ...j,\n      exists,\n\n      // Notion blockが参照するキー（ここを統一）\n      title,\n      link,\n      publishedAt,\n      hash,\n      action,\n      importance,\n      tags,\n      summary,\n      source: j.source || j.feedUrl || j.site || '',\n      site: j.site || '',\n\n      // Drive用（後でConvert to Fileで使う）\n      driveFileName: `${hash || 'nohash'}__${title.replace(/[\\\\/:*?\"<>|]/g,'_').slice(0,60)}.txt`,\n      driveText: `Title: ${title}\\nURL: ${link}\\nPublishedAt: ${publishedAt}\\nHash: ${hash}\\n\\nSummary:\\n${summary}\\n\\nBody:\\n${j.normalizedText || ''}\\n`\n    }\n  };\n});"
+      },
+      "name": "Parse/Type (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        400
+      ],
+      "id": "11848f03-6e0b-4407-839d-16c44c44e63c"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3103fee1-4844-80f0-b15d-c7dd255c50a4",
+          "mode": "list",
+          "cachedResultName": "3103fee1-4844-80f0-b15d-c7dd255c50a4",
+          "cachedResultUrl": "https://www.notion.so/3103fee1484480f0b15dc7dd255c50a4"
+        },
+        "title": "={{$json.title || 'RSS item'}}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Title|rich_text",
+              "richText": true,
+              "text": {
+                "text": [
+                  {
+                    "text": "={{ $json.title }}",
+                    "annotationUi": {}
+                  }
+                ]
+              }
+            },
+            {
+              "key": "Source|rich_text",
+              "textContent": "={{ $json.source }}"
+            },
+            {
+              "key": "Site|rich_text",
+              "textContent": "={{ $json.site }}"
+            },
+            {
+              "key": "Summary|multi_select",
+              "multiSelectValue": "={{ $json.summary }}"
+            },
+            {
+              "key": "Tags|multi_select",
+              "multiSelectValue": "={{ $json.tags }}"
+            },
+            {
+              "key": "Importance|number",
+              "numberValue": "={{ $json.importance }}"
+            },
+            {
+              "key": "Hash|rich_text",
+              "textContent": "={{ $json.hash }}"
+            },
+            {
+              "key": "PublishedAt|date",
+              "includeTime": false,
+              "date": "={{ $json.pubDate }}",
+              "timezone": "Asia/Tokyo"
+            },
+            {
+              "key": "ReadStatus|select",
+              "selectValue": "={{ $json.readStatus }}"
+            },
+            {
+              "key": "Action|select",
+              "selectValue": "={{ $json.action }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Notion Create Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [
+        272,
+        400
+      ],
+      "id": "c060989b-a280-464f-b210-c97aefdd7867",
+      "credentials": {
+        "notionApi": {
+          "id": "EPfWsjhZXXdbRurw",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "name": "Drive Upload (NotebookLM source)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        480,
+        400
+      ],
+      "id": "dc3932f5-f90e-4c28-b55c-7358eb7bd4d6"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.google.com/alerts/feeds/03032972658729420425/1759276382585817244",
+        "options": {}
+      },
+      "name": "RSS Read1",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -2032,
+        176
+      ],
+      "id": "1a73d1fe-2fed-4f57-b609-cea9dea872a4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "3450ffb2-fdba-4598-8ca9-d6e866717936",
+      "name": "NoOp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "=={{$env.GEMINI_API_KEY}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    { \"role\": \"user\", \"parts\": [ { \"text\": \"{{$json.geminiPrompt}}\" } ] }\n  ],\n  \"generationConfig\": { \"temperature\": 0.2 }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -112,
+        544
+      ],
+      "id": "01bfeb44-2e3b-4a3e-9fe3-39dff3ae6841",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT EXISTS(\n  SELECT 1 FROM dedup_hashes WHERE hash = $1\n) AS exists;",
+        "options": {
+          "queryReplacement": "=$1 = {{$json.hash}}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -736,
+        304
+      ],
+      "id": "f5ade439-d0e3-485a-bdfd-95ff1820c98c",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "wzanTHGylmVAao6A",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO dedup_hashes(hash, url, published_at, source)\nVALUES ($1, $2, $3, $4)\nON CONFLICT (hash) DO NOTHING;",
+        "options": {
+          "queryReplacement": "=$1 ={{$json.hash}}\n$2 ={{$json.link}}\n$3 ={{$json.publishedAt || null}}\n$4 ={{$json.source || null}}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        400
+      ],
+      "id": "75afb149-b91c-4410-9d08-834560c9eec4",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "wzanTHGylmVAao6A",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function tryDecode(s) {\n  try { return decodeURIComponent(s); } catch { return s; }\n}\nfunction decodeTwice(s) {\n  return tryDecode(tryDecode(s));\n}\nfunction extractByRegex(u) {\n  const m = String(u).match(/[?&](?:url|q|u)=([^&]+)/i);\n  return m ? decodeTwice(m[1]) : '';\n}\nfunction unwrap(u) {\n  let parsed;\n  try { parsed = new URL(u); } catch { return u; }\n\n  const isGoogle = (parsed.hostname === 'www.google.com' || parsed.hostname === 'google.com');\n  if (!isGoogle || parsed.pathname !== '/url') return u;\n\n  const raw =\n    parsed.searchParams.get('url') ||\n    parsed.searchParams.get('q') ||\n    parsed.searchParams.get('u') ||\n    '';\n\n  const cand = raw ? decodeTwice(raw) : '';\n  return cand || u;\n}\n\nreturn items.map(item => {\n  const j = item.json ?? {};\n  const link = j.link ?? j.url ?? '';\n\n  const fromRegex = extractByRegex(link);\n  const fromSearchParams = (() => {\n    try {\n      const p = new URL(link);\n      return p.searchParams.get('url') || p.searchParams.get('q') || p.searchParams.get('u') || '';\n    } catch { return ''; }\n  })();\n\n  // ★ここが肝：regex優先で resolvedUrl を確定\n  const resolvedUrl = (fromRegex || decodeTwice(fromSearchParams) || unwrap(link)).trim();\n\n  return {\n    json: {\n      ...j,\n      resolvedUrl,\n      _debug_raw: link,\n      _debug_fromRegex: fromRegex,\n      _debug_fromSearchParams: fromSearchParams\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        240
+      ],
+      "id": "2756ecfb-a791-41a5-a368-5a29f9471394",
+      "name": "Resolve Final URL（Code）"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        176
+      ],
+      "id": "620ddd55-0e09-40a1-bbd0-89ebfc13aa4f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4e634110-9780-44ca-a692-ccbed78415f6",
+              "leftValue": "=={{ (() => { try { return new URL($json.resolvedUrl).hostname === 'news.ycombinator.com' } catch { return false } })() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1472,
+        240
+      ],
+      "id": "b6ef0358-8cca-48d8-9521-7886ea48ea39",
+      "name": "IF Skip Fetch (HN)"
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Feed List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Feed List": {
+      "main": [
+        [
+          {
+            "node": "Explode Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explode Feeds": {
+      "main": [
+        [
+          {
+            "node": "RSS Read1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Articles": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Resolve Final URL（Code）",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Fetch HTML": {
+      "main": [
+        [
+          {
+            "node": "Extract HTML (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract HTML (Code)": {
+      "main": [
+        [
+          {
+            "node": "Normalize (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize (Code)": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Already": {
+      "main": [
+        [
+          {
+            "node": "NoOp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF PreSkip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF PreSkip": {
+      "main": [
+        [
+          {
+            "node": "Parse/Type (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse/Type (Code)": {
+      "main": [
+        [
+          {
+            "node": "Notion Create Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion Create Page": {
+      "main": [
+        [
+          {
+            "node": "Drive Upload (NotebookLM source)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Upload (NotebookLM source)": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read1": {
+      "main": [
+        [
+          {
+            "node": "Split Articles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Parse/Type (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        []
+      ]
+    },
+    "Resolve Final URL（Code）": {
+      "main": [
+        [
+          {
+            "node": "IF Skip Fetch (HN)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "IF Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Skip Fetch (HN)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Fetch HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract HTML (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "ed21dd79090174f853add69a77bcd3b169c4560569f906eb1176fd7c1a110567"
+  }
+}

@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+
+workflow-edit-set/tmp/
+workflow-edit-set/output/
+workflow-edit-set/*.code-workspace
+
+node_modules/
+dist/
+build/
+

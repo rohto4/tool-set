@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Edit Set</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Workflow Edit Set</p>
+          <h1>AWS-like Architecture Composer</h1>
+        </div>
+        <div class="toolbar">
+          <button id="connectModeButton" class="ghost-button">Connect: Off</button>
+          <button id="clearButton" class="ghost-button">Clear</button>
+          <button id="saveButton" class="primary-button">Export JSON</button>
+          <button id="loadButton" class="ghost-button">Import JSON</button>
+          <button id="svgButton" class="ghost-button">Export SVG</button>
+          <input id="fileInput" type="file" accept="application/json" hidden />
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="palette-panel">
+          <div class="panel-header">
+            <h2>Palette</h2>
+            <p>Click to add a node.</p>
+          </div>
+          <div id="palette" class="palette-list"></div>
+        </aside>
+
+        <section class="canvas-panel">
+          <div class="canvas-header">
+            <div>
+              <h2>Canvas</h2>
+              <p>Drag to move. Turn Connect on to create links.</p>
+            </div>
+            <div class="canvas-legend">
+              <span><i class="dot compute"></i>Compute</span>
+              <span><i class="dot data"></i>Data</span>
+              <span><i class="dot network"></i>Network</span>
+            </div>
+          </div>
+          <div id="canvas" class="canvas">
+            <svg id="edgeLayer" class="edge-layer"></svg>
+            <div id="nodeLayer" class="node-layer"></div>
+          </div>
+        </section>
+
+        <aside class="inspector-panel">
+          <div class="panel-header">
+            <h2>Inspector</h2>
+            <p>Edit the selected node.</p>
+          </div>
+          <div id="emptyInspector" class="inspector-empty">
+            Select a node to edit it.
+          </div>
+          <form id="inspectorForm" class="inspector-form hidden">
+            <label>
+              Label
+              <input id="labelInput" type="text" />
+            </label>
+            <label>
+              Color
+              <input id="colorInput" type="color" />
+            </label>
+            <label>
+              Type
+              <input id="typeInput" type="text" disabled />
+            </label>
+            <button id="deleteButton" type="button" class="danger-button">Delete Node</button>
+          </form>
+        </aside>
+      </main>
+    </div>
+
+    <template id="nodeTemplate">
+      <button class="diagram-node" type="button">
+        <span class="node-media">
+          <img class="node-icon" alt="" />
+        </span>
+        <span class="node-copy">
+          <span class="node-type"></span>
+          <span class="node-label"></span>
+        </span>
+      </button>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
