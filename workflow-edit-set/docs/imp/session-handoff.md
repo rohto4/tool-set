@@ -14,16 +14,17 @@
 
 ## In Progress
 
-- GitHub 登録
-- ユーザ要求の最新タスクリスト反映
+- 主要ショートカット実装
+- 範囲選択と複数選択実装
+- テキストDSL 入出力実装
+- アイコン中央配置の仕上げ
 
 ## Next Actions
 
-1. `tool-set` を単独 Git repo として初期化する
-2. `origin` に `https://github.com/rohto4/tool-set.git` を設定する
-3. 最新タスク一覧を task board に反映する
-4. 初回コミットと task board 更新を GitHub へ push する
-5. その後、本体機能拡張に着手する
+1. 新しい `site/app.js` の挙動をブラウザ実機で確認する
+2. ショートカット、範囲選択、テキスト入出力の不具合を潰す
+3. 必要ならコンポーネントをさらに増やす
+4. 変更を commit / push する
 
 ## Notes
 
@@ -31,6 +32,7 @@
 - このため、`tool-set` 側は単独 repo として切り出すのが安全。
 - 本体実装前に GitHub 登録を済ませる、というユーザ指示あり。
 - 最新要求は `current-task-board.md` の `Requested Tasks` を正本にする。
+- GitHub 登録は完了済み。`main` は `origin/main` を追跡中。
 
 ## Files Touched Recently
 

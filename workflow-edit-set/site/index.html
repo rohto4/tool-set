@@ -11,11 +11,17 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Workflow Edit Set</p>
-          <h1>AWS-like Architecture Composer</h1>
+          <h1>AWS-like Workflow Editor</h1>
         </div>
         <div class="toolbar">
+          <button id="undoButton" class="ghost-button">Undo</button>
+          <button id="redoButton" class="ghost-button">Redo</button>
+          <button id="selectAllButton" class="ghost-button">Select All</button>
           <button id="connectModeButton" class="ghost-button">Connect: Off</button>
+          <button id="duplicateButton" class="ghost-button">Duplicate</button>
           <button id="clearButton" class="ghost-button">Clear</button>
+          <button id="loadSampleButton" class="ghost-button">Load Sample</button>
+          <button id="textPanelButton" class="ghost-button">Text I/O</button>
           <button id="saveButton" class="primary-button">Export JSON</button>
           <button id="loadButton" class="ghost-button">Import JSON</button>
           <button id="svgButton" class="ghost-button">Export SVG</button>
@@ -27,7 +33,7 @@
         <aside class="palette-panel">
           <div class="panel-header">
             <h2>Palette</h2>
-            <p>Click to add a node.</p>
+            <p>Add components by category.</p>
           </div>
           <div id="palette" class="palette-list"></div>
         </aside>
@@ -36,27 +42,33 @@
           <div class="canvas-header">
             <div>
               <h2>Canvas</h2>
-              <p>Drag to move. Turn Connect on to create links.</p>
+              <p>Marquee select, drag to move, and use common illustration shortcuts.</p>
             </div>
             <div class="canvas-legend">
               <span><i class="dot compute"></i>Compute</span>
               <span><i class="dot data"></i>Data</span>
               <span><i class="dot network"></i>Network</span>
+              <span><i class="dot security"></i>Security</span>
             </div>
           </div>
           <div id="canvas" class="canvas">
             <svg id="edgeLayer" class="edge-layer"></svg>
             <div id="nodeLayer" class="node-layer"></div>
+            <div id="marquee" class="marquee hidden"></div>
+          </div>
+          <div class="statusbar">
+            <span id="statusLabel">0 selected</span>
+            <span>Shortcuts: Ctrl/Cmd+Z, Y, A, C, X, V, D, S, E, Delete, Arrows</span>
           </div>
         </section>
 
         <aside class="inspector-panel">
           <div class="panel-header">
             <h2>Inspector</h2>
-            <p>Edit the selected node.</p>
+            <p>Edit the current selection.</p>
           </div>
           <div id="emptyInspector" class="inspector-empty">
-            Select a node to edit it.
+            Select one or more nodes to edit them.
           </div>
           <form id="inspectorForm" class="inspector-form hidden">
             <label>
@@ -71,8 +83,27 @@
               Type
               <input id="typeInput" type="text" disabled />
             </label>
-            <button id="deleteButton" type="button" class="danger-button">Delete Node</button>
+            <label>
+              Meta
+              <input id="metaInput" type="text" disabled />
+            </label>
+            <button id="deleteButton" type="button" class="danger-button">Delete Selection</button>
           </form>
+          <section id="textPanel" class="text-panel hidden">
+            <div class="panel-header panel-header-tight">
+              <h2>Workflow Text</h2>
+              <p>Mermaid-inspired import and export.</p>
+            </div>
+            <textarea id="textArea" spellcheck="false"></textarea>
+            <div class="text-panel-actions">
+              <button id="exportTextButton" type="button" class="ghost-button">Export Text</button>
+              <button id="importTextButton" type="button" class="primary-button">Import Text</button>
+              <button id="downloadTextButton" type="button" class="ghost-button">Download</button>
+              <button id="copyTextButton" type="button" class="ghost-button">Copy</button>
+              <button id="closeTextButton" type="button" class="ghost-button">Close</button>
+            </div>
+            <p id="textStatus" class="text-status">Ready.</p>
+          </section>
         </aside>
       </main>
     </div>

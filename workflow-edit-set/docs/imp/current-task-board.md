@@ -17,7 +17,7 @@ AWS 風ワークフローエディターを大幅拡張し、ショートカッ�
 ## Phases
 
 - [x] Phase 0: 運用、Git、引継ぎ基盤
-- [ ] Phase 0.5: `tool-set` の GitHub 登録
+- [x] Phase 0.5: `tool-set` の GitHub 登録
 - [ ] Phase 1: Undo / Redo / Select All / Delete / Duplicate など一般的ショートカット
 - [ ] Phase 2: 範囲選択、複数選択、複数移動
 - [ ] Phase 3: コンポーネントカテゴリとアイコン拡張
@@ -27,4 +27,4 @@ AWS 風ワークフローエディターを大幅拡張し、ショートカッ�
 
 ## Current Focus
 
-Phase 0.5 の GitHub 登録と、実装前のタスク固定。
+Phase 1 から Phase 4 までの主要実装をまとめて進行中。
