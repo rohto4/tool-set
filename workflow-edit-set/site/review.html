@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Edit Set - 進捗ページ</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="review-page-body">
+    <main class="review-page-shell">
+      <header class="review-page-header">
+        <div>
+          <p class="eyebrow">Workflow Edit Set</p>
+          <h1>進捗ページ</h1>
+          <p class="review-page-copy">引継ぎやレビュー前の星取表をここに分離して置きます。</p>
+        </div>
+        <a class="ghost-button toolbar-link-button" href="./index.html">エディタへ戻る</a>
+      </header>
+
+      <section class="review-page-card">
+        <div class="panel-header panel-header-tight">
+          <h2>進捗レビュー</h2>
+          <p>別ページ側で進捗をまとめ、メイン画面の横幅を圧迫しないようにします。</p>
+        </div>
+
+        <div class="review-stats">
+          <span class="review-chip">7/7 項目完了</span>
+          <span class="review-chip">Web App</span>
+          <span class="review-chip">ノード 7 件</span>
+          <span class="review-chip">部品 31 種</span>
+        </div>
+
+        <div class="review-list">
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>一般ショートカット</strong>
+              <p>Undo、Redo、全選択、コピー、切り取り、貼り付け、複製、削除、微移動</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>範囲選択</strong>
+              <p>マーキー選択、複数選択、複数ドラッグ</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>コンポーネント拡充</strong>
+              <p>Compute、Storage、Data、Network、Security、Integration、Observability</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>編集機能の充実</strong>
+              <p>整列、均等配置、前後移動、スナップ、接続削除、サンプル読込</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>アイコン中央配置</strong>
+              <p>ノード内アイコンの中央表示を調整</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>テキスト入出力</strong>
+              <p>Mermaid風 flowchart と独自 DSL の相互変換</p>
+            </div>
+          </div>
+          <div class="review-item">
+            <span class="review-state done"></span>
+            <div>
+              <strong>リファレンス整備</strong>
+              <p>DSL リファレンスとエディター仕様書の更新</p>
+            </div>
+          </div>
+        </div>
+
+        <label class="review-label">
+          進捗サマリー
+          <textarea readonly>Workflow Editor 進捗更新:
+- コア項目 7/7 が実装済み、または試用可能です。
+- 現在のデモテンプレートは Web App です。
+- パレットには AWS 風コンポーネントが 31 種あります。
+- 範囲選択、一般ショートカット、Mermaid風入出力、PNG/SVG/JSON 出力、自動保存が動作しています。
+- 現在は試用時の操作感をさらに磨いています。</textarea>
+        </label>
+      </section>
+    </main>
+  </body>
+</html>

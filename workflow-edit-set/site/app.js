@@ -77,6 +77,13 @@ const familyStyles = {
   integration: { color: "#f97316", icon: "../assets/icons/integration.png" }
 };
 
+const GRID_SIZE = 24;
+const NODE_WIDTH = 236;
+const NODE_HEIGHT = 96;
+const NODE_ICON_BOX_SIZE = 64;
+const CANVAS_WIDTH = 2200;
+const CANVAS_HEIGHT = 1400;
+
 const componentIndex = new Map(
   componentCatalog.flatMap((group) =>
     group.items.map((item) => {
@@ -176,17 +183,25 @@ const state = {
   selectedNodeIds: [],
   connectMode: false,
   snapToGrid: true,
-  selectedEdgeId: null
+  selectedEdgeId: null,
+  viewport: {
+    x: 0,
+    y: 0
+  }
 };
 
 const history = [];
 const future = [];
 let dragState = null;
 let marqueeState = null;
+let panState = null;
 let connectStartId = null;
 let clipboard = null;
 let lastCanvasGestureAt = 0;
 let currentTemplateName = sampleTemplates.webApp.label;
+let lastFocusedElement = null;
+let isSpacePressed = false;
+let suppressNodeClickUntil = 0;
 
 const palette = document.getElementById("palette");
 const canvas = document.getElementById("canvas");
@@ -221,38 +236,37 @@ const bringFrontButton = document.getElementById("bringFrontButton");
 const sendBackButton = document.getElementById("sendBackButton");
 const snapButton = document.getElementById("snapButton");
 const textPanelButton = document.getElementById("textPanelButton");
-const loadSampleButton = document.getElementById("loadSampleButton");
+const quickLoadSampleButton = document.getElementById("quickLoadSampleButton");
+const loadWebSampleButton = document.getElementById("loadWebSampleButton");
 const loadEventSampleButton = document.getElementById("loadEventSampleButton");
 const loadDataSampleButton = document.getElementById("loadDataSampleButton");
 const helpButton = document.getElementById("helpButton");
 const paletteSearchInput = document.getElementById("paletteSearchInput");
 const fileInput = document.getElementById("fileInput");
 const textPanel = document.getElementById("textPanel");
-const reviewStats = document.getElementById("reviewStats");
-const reviewList = document.getElementById("reviewList");
-const reviewSummary = document.getElementById("reviewSummary");
 const textArea = document.getElementById("textArea");
 const textStatus = document.getElementById("textStatus");
 const exportTextButton = document.getElementById("exportTextButton");
 const importTextButton = document.getElementById("importTextButton");
 const downloadTextButton = document.getElementById("downloadTextButton");
 const copyTextButton = document.getElementById("copyTextButton");
-const copyReviewButton = document.getElementById("copyReviewButton");
 const closeTextButton = document.getElementById("closeTextButton");
 const statusLabel = document.getElementById("statusLabel");
 const helpPanel = document.getElementById("helpPanel");
 const closeHelpButton = document.getElementById("closeHelpButton");
+const dismissHelpButton = document.getElementById("dismissHelpButton");
 
 const STORAGE_KEY = "workflow-edit-set.autosave.v1";
+const HELP_SEEN_KEY = "workflow-edit-set.help-seen.v1";
 
 const progressItems = [
-  { id: "shortcuts", label: "General shortcuts", detail: "Undo, redo, select all, copy, cut, paste, duplicate, delete, nudge" },
-  { id: "selection", label: "Range selection", detail: "Marquee selection, multi-select, multi-drag" },
-  { id: "components", label: "Component expansion", detail: "Compute, storage, data, network, security, integration, observability" },
-  { id: "editor", label: "Editor parity", detail: "Align, distribute, layer order, snap, edge deletion, sample loading" },
-  { id: "icons", label: "Icon centering", detail: "Centered component icon rendering" },
-  { id: "dsl", label: "Text import/export", detail: "Mermaid-style flowchart and custom workflow DSL" },
-  { id: "reference", label: "Reference docs", detail: "Text DSL reference and editor spec updates" }
+  { id: "shortcuts", label: "一般ショートカット", detail: "Undo、Redo、全選択、コピー、切り取り、貼り付け、複製、削除、微移動" },
+  { id: "selection", label: "範囲選択", detail: "マーキー選択、複数選択、複数ドラッグ" },
+  { id: "components", label: "コンポーネント拡充", detail: "Compute、Storage、Data、Network、Security、Integration、Observability" },
+  { id: "editor", label: "編集機能の充実", detail: "整列、均等配置、前後移動、スナップ、接続削除、サンプル読込" },
+  { id: "icons", label: "アイコン中央配置", detail: "ノード内アイコンの中央表示を調整" },
+  { id: "dsl", label: "テキスト入出力", detail: "Mermaid風 flowchart と独自 DSL の相互変換" },
+  { id: "reference", label: "リファレンス整備", detail: "DSL リファレンスとエディター仕様書の更新" }
 ];
 
 function createId(prefix) {
@@ -375,7 +389,7 @@ function clearSelection() {
 
 function snapCoordinate(value) {
   if (!state.snapToGrid) return value;
-  return Math.round(value / 24) * 24;
+  return Math.round(value / GRID_SIZE) * GRID_SIZE;
 }
 
 function toggleSnap() {
@@ -395,7 +409,7 @@ function toggleConnectMode() {
 
 function addNode(component, point = null) {
   mutate(() => {
-    const offset = state.nodes.length * 24;
+    const offset = state.nodes.length * GRID_SIZE;
     const x = snapCoordinate(point?.x ?? 120 + offset);
     const y = snapCoordinate(point?.y ?? 120 + offset);
     const node = decorateNode({
@@ -554,7 +568,7 @@ function openTextPanel(exportCurrent = false) {
   textPanel.classList.remove("hidden");
   if (exportCurrent) {
     textArea.value = exportText();
-    setTextStatus("Exported current workflow to text.");
+    setTextStatus("現在のワークフローをテキストへ出力しました。");
   }
 }
 
@@ -563,11 +577,19 @@ function closeTextPanel() {
 }
 
 function openHelpPanel() {
+  lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   helpPanel.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  dismissHelpButton.focus();
 }
 
 function closeHelpPanel() {
   helpPanel.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+  if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+    lastFocusedElement.focus();
+  }
+  lastFocusedElement = null;
 }
 
 function setTextStatus(message) {
@@ -595,58 +617,6 @@ function getProgressSnapshot() {
   }));
 }
 
-async function copyReviewSummary() {
-  try {
-    const text = reviewSummary.value;
-    if (window.isSecureContext && navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-    } else {
-      reviewSummary.focus();
-      reviewSummary.select();
-      document.execCommand("copy");
-    }
-    setStatus("Progress summary copied.");
-  } catch (_error) {
-    setStatus("Could not copy progress summary.");
-  }
-}
-
-function renderReviewPanel() {
-  const items = getProgressSnapshot();
-  const done = items.filter((item) => item.state === "done").length;
-  const total = items.length;
-
-  reviewStats.innerHTML = `
-    <span class="review-chip">${done}/${total} tasks done</span>
-    <span class="review-chip">${currentTemplateName}</span>
-    <span class="review-chip">${state.nodes.length} nodes in sample</span>
-    <span class="review-chip">${componentCatalog.flatMap((group) => group.items).length} components</span>
-  `;
-
-  reviewList.innerHTML = "";
-  for (const item of items) {
-    const row = document.createElement("div");
-    row.className = "review-item";
-    row.innerHTML = `
-      <span class="review-state ${item.state}"></span>
-      <div>
-        <strong>${item.label}</strong>
-        <p>${item.detail}</p>
-      </div>
-    `;
-    reviewList.appendChild(row);
-  }
-
-  reviewSummary.value = [
-    "Workflow Editor progress update:",
-    `- ${done}/${total} core tasks are now implemented or demo-ready.`,
-    `- Active demo template: ${currentTemplateName}.`,
-    `- ${componentCatalog.flatMap((group) => group.items).length} AWS-like components available in the palette.`,
-    "- Marquee selection, editor shortcuts, Mermaid-style import/export, PNG/SVG/JSON export, and autosave are working in the local editor.",
-    "- Current focus is polishing interaction quality for hands-on testing."
-  ].join("\n");
-}
-
 function persistDiagram() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeDiagram()));
@@ -668,9 +638,65 @@ function loadPersistedDiagram() {
 function getCanvasPoint(event) {
   const rect = canvas.getBoundingClientRect();
   return {
-    x: event.clientX - rect.left + canvas.scrollLeft,
-    y: event.clientY - rect.top + canvas.scrollTop
+    x: event.clientX - rect.left - state.viewport.x,
+    y: event.clientY - rect.top - state.viewport.y
   };
+}
+
+function getCanvasScreenPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
+  };
+}
+
+function getViewportLimits() {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    minX: Math.min(0, rect.width - CANVAS_WIDTH),
+    maxX: 0,
+    minY: Math.min(0, rect.height - CANVAS_HEIGHT),
+    maxY: 0
+  };
+}
+
+function clampViewport(nextX, nextY) {
+  const limits = getViewportLimits();
+  return {
+    x: Math.min(limits.maxX, Math.max(limits.minX, nextX)),
+    y: Math.min(limits.maxY, Math.max(limits.minY, nextY))
+  };
+}
+
+function setViewport(nextX, nextY) {
+  const next = clampViewport(nextX, nextY);
+  state.viewport.x = next.x;
+  state.viewport.y = next.y;
+}
+
+function renderViewport() {
+  const x = `${state.viewport.x}px`;
+  const y = `${state.viewport.y}px`;
+  canvas.style.backgroundPosition = `${x} ${y}, ${x} ${y}, ${x} ${y}, ${x} ${y}, 0 0`;
+  nodeLayer.style.transform = `translate(${x}, ${y})`;
+  edgeLayer.style.transform = `translate(${x}, ${y})`;
+  marquee.style.transform = `translate(${x}, ${y})`;
+  canvas.classList.toggle("pan-ready", isSpacePressed || Boolean(panState));
+  canvas.classList.toggle("is-panning", Boolean(panState));
+}
+
+function shouldStartPan(event) {
+  return event.button === 1 || (event.button === 0 && isSpacePressed);
+}
+
+function startPan(event) {
+  event.preventDefault();
+  panState = {
+    origin: getCanvasScreenPoint(event),
+    viewport: { ...state.viewport }
+  };
+  renderViewport();
 }
 
 function getNodeCenter(node) {
@@ -811,14 +837,14 @@ function updateInspector() {
     labelInput.disabled = true;
     labelInput.value = "";
     colorInput.value = selected[0].color;
-    typeInput.value = `${selected.length} nodes selected`;
-    metaInput.value = "Batch edit enabled";
+    typeInput.value = `${selected.length} ノードを選択中`;
+    metaInput.value = "一括編集モード";
   }
 }
 
 function renderButtons() {
-  connectModeButton.textContent = `Connect: ${state.connectMode ? "On" : "Off"}`;
-  snapButton.textContent = `Snap: ${state.snapToGrid ? "On" : "Off"}`;
+  connectModeButton.textContent = `接続モード: ${state.connectMode ? "ON" : "OFF"}`;
+  snapButton.textContent = `スナップ: ${state.snapToGrid ? "ON" : "OFF"}`;
   undoButton.disabled = history.length === 0;
   redoButton.disabled = future.length === 0;
 }
@@ -827,11 +853,11 @@ function render() {
   renderNodes();
   renderEdges();
   renderMarquee();
+  renderViewport();
   updateInspector();
   renderButtons();
-  renderReviewPanel();
-  const edgeSuffix = state.selectedEdgeId ? " / 1 link selected" : "";
-  setStatus(`${state.selectedNodeIds.length} selected / ${state.nodes.length} nodes / ${state.edges.length} links${edgeSuffix}`);
+  const edgeSuffix = state.selectedEdgeId ? " / 接続1件選択" : "";
+  setStatus(`${state.selectedNodeIds.length}件選択 / ノード${state.nodes.length}件 / 接続${state.edges.length}件${edgeSuffix}`);
 }
 
 function selectNodesInMarquee(additive = false) {
@@ -842,7 +868,7 @@ function selectNodesInMarquee(additive = false) {
   const y2 = Math.max(marqueeState.origin.y, marqueeState.current.y);
 
   const hits = state.nodes
-    .filter((node) => node.x < x2 && node.x + 220 > x1 && node.y < y2 && node.y + 88 > y1)
+    .filter((node) => node.x < x2 && node.x + NODE_WIDTH > x1 && node.y < y2 && node.y + NODE_HEIGHT > y1)
     .map((node) => node.id);
 
   if (additive) {
@@ -853,6 +879,10 @@ function selectNodesInMarquee(additive = false) {
 }
 
 function startNodePointer(event, nodeId) {
+  if (shouldStartPan(event)) {
+    startPan(event);
+    return;
+  }
   if (event.button !== 0) return;
   const selectedIds = state.selectedNodeIds.includes(nodeId) ? [...state.selectedNodeIds] : [nodeId];
 
@@ -886,6 +916,9 @@ function startNodePointer(event, nodeId) {
 
 function handleNodeClick(event, nodeId) {
   event.stopPropagation();
+  if (Date.now() < suppressNodeClickUntil) {
+    return;
+  }
 
   if (state.connectMode) {
     if (!connectStartId) {
@@ -900,6 +933,8 @@ function handleNodeClick(event, nodeId) {
         mutate(() => {
           state.edges.push({ id: createId("edge"), from: connectStartId, to: nodeId });
         });
+      } else {
+        setStatus("同じ接続はすでに存在します。");
       }
     }
     connectStartId = null;
@@ -919,6 +954,15 @@ function handleNodeClick(event, nodeId) {
 }
 
 function movePointer(event) {
+  if (panState) {
+    const point = getCanvasScreenPoint(event);
+    const dx = point.x - panState.origin.x;
+    const dy = point.y - panState.origin.y;
+    setViewport(panState.viewport.x + dx, panState.viewport.y + dy);
+    renderViewport();
+    return;
+  }
+
   if (dragState) {
     const point = getCanvasPoint(event);
     const dx = point.x - dragState.origin.x;
@@ -947,18 +991,28 @@ function movePointer(event) {
 }
 
 function endPointer() {
-  if (dragState || marqueeState) {
+  const endedPan = Boolean(panState);
+  if (dragState || marqueeState || panState) {
     lastCanvasGestureAt = Date.now();
   }
+  if (endedPan) {
+    suppressNodeClickUntil = Date.now() + 160;
+  }
   dragState = null;
+  panState = null;
   if (marqueeState) {
     selectNodesInMarquee(marqueeState.additive);
     marqueeState = null;
     renderMarquee();
   }
+  renderViewport();
 }
 
 function startMarquee(event) {
+  if (shouldStartPan(event)) {
+    startPan(event);
+    return;
+  }
   if (event.button !== 0) return;
   if (event.target.closest(".diagram-node")) return;
 
@@ -985,18 +1039,26 @@ function exportJson() {
 function importJson(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const raw = String(reader.result);
-    const isJson = file.name.toLowerCase().endsWith(".json") || raw.trim().startsWith("{");
-    if (isJson) {
-      const data = JSON.parse(raw);
-      replaceDiagram(data);
-      setTextStatus("Imported JSON workflow.");
-      return;
+    try {
+      const raw = String(reader.result);
+      const isJson = file.name.toLowerCase().endsWith(".json") || raw.trim().startsWith("{");
+      if (isJson) {
+        const data = JSON.parse(raw);
+        replaceDiagram(data);
+        setTextStatus("JSON ワークフローを読み込みました。");
+        setStatus("JSON ワークフローを読み込みました。");
+        return;
+      }
+      const parsed = parseTextDiagram(raw);
+      replaceDiagram(parsed);
+      textArea.value = raw;
+      setTextStatus("テキストワークフローを読み込みました。");
+      setStatus("テキストワークフローを読み込みました。");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ファイルの読み込みに失敗しました。";
+      setTextStatus(message);
+      setStatus(message);
     }
-    const parsed = parseTextDiagram(raw);
-    replaceDiagram(parsed);
-    textArea.value = raw;
-    setTextStatus("Imported text workflow.");
   };
   reader.readAsText(file);
 }
@@ -1022,8 +1084,8 @@ function escapeXml(value) {
 function exportSvg() {
   const nodesMarkup = state.nodes.map((node) => `
     <g transform="translate(${node.x}, ${node.y})">
-      <rect rx="22" ry="22" width="220" height="88" fill="#10243c" stroke="${node.color}" stroke-opacity="0.25" />
-      <rect x="14" y="12" rx="18" ry="18" width="64" height="64" fill="#17324f" stroke="#ffffff" stroke-opacity="0.08" />
+      <rect rx="22" ry="22" width="${NODE_WIDTH}" height="${NODE_HEIGHT}" fill="#172a38" stroke="${node.color}" stroke-opacity="0.25" />
+      <rect x="16" y="16" rx="14" ry="14" width="${NODE_ICON_BOX_SIZE}" height="${NODE_ICON_BOX_SIZE}" fill="#27404f" stroke="#ffffff" stroke-opacity="0.08" />
       <text x="96" y="34" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#bae6fd">${escapeXml(node.type.toUpperCase())}</text>
       <text x="96" y="58" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#f8fbff">${escapeXml(node.label)}</text>
     </g>
@@ -1054,8 +1116,8 @@ function exportSvg() {
 async function exportPng() {
   const nodesMarkup = state.nodes.map((node) => `
     <g transform="translate(${node.x}, ${node.y})">
-      <rect rx="22" ry="22" width="220" height="88" fill="#10243c" stroke="${node.color}" stroke-opacity="0.25" />
-      <rect x="14" y="12" rx="18" ry="18" width="64" height="64" fill="#17324f" stroke="#ffffff" stroke-opacity="0.08" />
+      <rect rx="22" ry="22" width="${NODE_WIDTH}" height="${NODE_HEIGHT}" fill="#172a38" stroke="${node.color}" stroke-opacity="0.25" />
+      <rect x="16" y="16" rx="14" ry="14" width="${NODE_ICON_BOX_SIZE}" height="${NODE_ICON_BOX_SIZE}" fill="#27404f" stroke="#ffffff" stroke-opacity="0.08" />
       <text x="96" y="34" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#bae6fd">${escapeXml(node.type.toUpperCase())}</text>
       <text x="96" y="58" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#f8fbff">${escapeXml(node.label)}</text>
     </g>
@@ -1214,14 +1276,14 @@ function parseTextDiagram(text) {
       continue;
     }
 
-    throw new Error(`Cannot parse line: ${line}`);
+    throw new Error(`解析できない行があります: ${line}`);
   }
 
   parsed.nodes = [...nodesById.values()];
 
   for (const edge of parsed.edges) {
     if (!nodesById.has(edge.from) || !nodesById.has(edge.to)) {
-      throw new Error(`Edge references unknown node: ${edge.from} -> ${edge.to}`);
+      throw new Error(`未定義ノードを参照する接続があります: ${edge.from} -> ${edge.to}`);
     }
   }
 
@@ -1232,10 +1294,26 @@ function importText() {
   try {
     const parsed = parseTextDiagram(textArea.value);
     replaceDiagram(parsed);
-    setTextStatus("Imported workflow text.");
-    setStatus("Workflow text imported.");
+    setTextStatus("ワークフローテキストを読み込みました。");
+    setStatus("ワークフローテキストを読み込みました。");
   } catch (error) {
     setTextStatus(error.message);
+  }
+}
+
+function shouldShowInitialHelp() {
+  try {
+    return !localStorage.getItem(HELP_SEEN_KEY);
+  } catch (_error) {
+    return true;
+  }
+}
+
+function markHelpAsSeen() {
+  try {
+    localStorage.setItem(HELP_SEEN_KEY, "1");
+  } catch (_error) {
+    // Ignore unavailable storage.
   }
 }
 
@@ -1248,9 +1326,9 @@ async function copyTextToClipboard() {
       textArea.select();
       document.execCommand("copy");
     }
-    setTextStatus("Copied text to clipboard.");
+    setTextStatus("テキストをコピーしました。");
   } catch (_error) {
-    setTextStatus("Clipboard copy failed in this context.");
+    setTextStatus("この環境ではクリップボードにコピーできませんでした。");
   }
 }
 
@@ -1271,6 +1349,12 @@ function isEditableTarget(target) {
 }
 
 function handleKeyboard(event) {
+  if (event.code === "Space" && !isEditableTarget(event.target)) {
+    event.preventDefault();
+    isSpacePressed = true;
+    renderViewport();
+  }
+
   if (isEditableTarget(event.target)) {
     if (event.key === "Escape") {
       event.target.blur();
@@ -1366,6 +1450,13 @@ function handleKeyboard(event) {
   }
 }
 
+function handleKeyup(event) {
+  if (event.code === "Space") {
+    isSpacePressed = false;
+    renderViewport();
+  }
+}
+
 labelInput.addEventListener("input", () => {
   const selected = getSelectedNodes();
   if (selected.length !== 1) return;
@@ -1413,23 +1504,34 @@ bringFrontButton.addEventListener("click", () => reorderSelected("front"));
 sendBackButton.addEventListener("click", () => reorderSelected("back"));
 snapButton.addEventListener("click", toggleSnap);
 textPanelButton.addEventListener("click", () => openTextPanel(true));
-loadSampleButton.addEventListener("click", () => loadSample("webApp"));
+quickLoadSampleButton.addEventListener("click", () => loadSample("webApp"));
+loadWebSampleButton.addEventListener("click", () => loadSample("webApp"));
 loadEventSampleButton.addEventListener("click", () => loadSample("eventMesh"));
 loadDataSampleButton.addEventListener("click", () => loadSample("dataPipeline"));
-helpButton.addEventListener("click", openHelpPanel);
+helpButton.addEventListener("click", () => {
+  markHelpAsSeen();
+  openHelpPanel();
+});
 exportTextButton.addEventListener("click", () => {
   textArea.value = exportText();
-  setTextStatus("Exported current workflow to text.");
+  setTextStatus("現在のワークフローをテキストへ出力しました。");
 });
 importTextButton.addEventListener("click", importText);
 downloadTextButton.addEventListener("click", downloadTextFile);
 copyTextButton.addEventListener("click", copyTextToClipboard);
-copyReviewButton.addEventListener("click", copyReviewSummary);
 closeTextButton.addEventListener("click", closeTextPanel);
 paletteSearchInput.addEventListener("input", renderPalette);
-closeHelpButton.addEventListener("click", closeHelpPanel);
+closeHelpButton.addEventListener("click", () => {
+  markHelpAsSeen();
+  closeHelpPanel();
+});
+dismissHelpButton.addEventListener("click", () => {
+  markHelpAsSeen();
+  closeHelpPanel();
+});
 helpPanel.addEventListener("click", (event) => {
   if (event.target === helpPanel) {
+    markHelpAsSeen();
     closeHelpPanel();
   }
 });
@@ -1459,7 +1561,22 @@ canvas.addEventListener("click", (event) => {
 window.addEventListener("mousemove", movePointer);
 window.addEventListener("mouseup", endPointer);
 window.addEventListener("keydown", handleKeyboard);
+window.addEventListener("keyup", handleKeyup);
+window.addEventListener("blur", () => {
+  isSpacePressed = false;
+  panState = null;
+  renderViewport();
+});
+window.addEventListener("resize", () => {
+  setViewport(state.viewport.x, state.viewport.y);
+  renderViewport();
+});
 
 renderPalette();
 restore(loadPersistedDiagram() ?? sampleTemplates.webApp.diagram);
 textArea.value = exportText();
+if (shouldShowInitialHelp()) {
+  openHelpPanel();
+} else {
+  closeHelpPanel();
+}

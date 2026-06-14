@@ -2,45 +2,45 @@
 
 ## Active Objective
 
-運用文書を同期し、`workflow-edit-set/docs`、`docs/imp/session-prompts/`、`G:\Knowledge-vault` の責務分担を矛盾なく保つ。
+`workflow-edit-set` のセッション3残タスクを回収し、ビューポート操作まわりの確認と最小修正を完了する。
+見た目正本は `site/ui-kit.html` のまま維持しつつ、`site/app.js` と関連文書を今回の状態へ追随させる。
 
-## Requested Tasks
+## Session Scope
 
-1. 対象運用文書の矛盾を洗い出して修正する
-2. `workflow-edit-set/docs` の責務をローカル運用文書の正本として統一する
-3. `docs/imp/session-prompts/` の責務をセッション開始プロンプト置き場として統一する
-4. `G:\Knowledge-vault` の責務を Knowledge Vault 正本として統一する
-5. `docs/knowledge-vault` を再作成しないルールを明文化する
-6. 完了済みの移設や運用変更が未完了扱いで残っている箇所を是正する
-7. `current-task-board.md` と `session-handoff.md` を今回の文書同期作業に追随させる
+- 主対象: `site/app.js`
+- 必要最小限の調整: `site/index.html`, `site/styles.css`
+- セッション文書更新: `current-task-board.md`, `session-handoff.md`, `session-log.md`
+- 対象外: CLI / core 分離、テスト導入、大規模なデータモデル再設計
 
-## Tracks
+## Done Criteria
 
-### Track A: 文書同期
+- `Space+drag` または中ボタンドラッグでのハンドパン成立条件がコードと文書で一致している
+- 背景グリッドがビューポート移動に追従する描画経路が維持されている
+- ノード選択、複数選択、ドラッグ、接続、整列、スナップの既存経路に大きな回帰がない
+- 次セッションで `テキストボックス追加` と `領域塗り` に進める状態が明文化されている
 
-- [x] 対象8文書の矛盾箇所を横断レビューする
-- [x] 正本の定義を各文書へ統一反映する
-- [x] 完了済み移設を未完了扱いしている記述を解消する
+## Current Status
 
-### Track B: セッション運用
+- `site/app.js` にビューポート座標、レイヤー translate、背景グリッド追従が入っている
+- `site/app.js` で `Space+drag` / 中ボタンドラッグによるパン開始条件を扱っている
+- ノード上でパン開始した直後の click 誤発火を抑える最小修正を追加した
+- `site/index.html` のショートカット表示とクイックヘルプを現実装に合わせた
 
-- [x] `current-task-board.md` を今回の文書同期作業に合わせる
-- [x] `session-handoff.md` を最新の運用状態に合わせる
-- [x] `session-prompts/README.md` の更新ルールを実在ファイル基準に直す
+## Interaction Priority
 
-### Track C: Knowledge Vault 運用
+1. ハンドパン
+2. 背景グリッド追従
+3. テキストボックス追加
+4. 領域塗り
 
-- [x] `G:\Knowledge-vault` を正本とする記述を統一する
-- [x] `workflow-edit-set/docs` に Knowledge Vault を再作成しないルールを明文化する
-- [x] ローカル docs とグローバル Knowledge Vault の責務分離を明文化する
+## Rationale
 
-## Session Assets
+- ハンドパンを先に入れないと広い図面編集の基盤が定まらない
+- 背景グリッド追従はハンドパンと同じビューポート変換に乗せるべき
+- テキストボックスは注釈レイヤーの基礎として先に価値を出しやすい
+- 領域塗りは領域コンテナと注釈の見え方を固めてから詰めるほうが手戻りが少ない
+## Session 4 Result
 
-- セッション開始プロンプト:
-  `workflow-edit-set/docs/imp/session-prompts/`
-- グローバル Knowledge Vault:
-  `G:\Knowledge-vault`
-
-## Current Focus
-
-今回の文書同期は完了。次回以降はこの運用基準を崩さず、必要な更新が出たときだけ対象文書を同時更新する。アプリ実装や UI 改修はこのボードの対象外とする。
+- ビューポート移動のコード経路を確認し、背景グリッド追従は `background-position` とレイヤー translate の併用で成立していることを確認
+- 既存操作の回帰観点を洗い、ノード上の `Space+drag` パン後に click が走りうる経路だけ最小修正
+- 次セッションの主対象は `テキストボックス追加` と `領域塗り`

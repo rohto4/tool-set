@@ -9,54 +9,59 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div>
+        <div class="topbar-copy">
           <p class="eyebrow">Workflow Edit Set</p>
-          <h1>AWS-like Workflow Editor</h1>
+          <h1>Workflow Editor</h1>
+          <p class="topbar-summary">
+            UI キット基準に沿ってノード、ラベル、注釈、領域を整えるための編集画面です。
+          </p>
         </div>
-        <div class="toolbar">
-          <button id="undoButton" class="ghost-button">Undo</button>
-          <button id="redoButton" class="ghost-button">Redo</button>
-          <button id="selectAllButton" class="ghost-button">Select All</button>
-          <button id="alignLeftButton" class="ghost-button">Align Left</button>
-          <button id="alignRightButton" class="ghost-button">Align Right</button>
-          <button id="alignTopButton" class="ghost-button">Align Top</button>
-          <button id="alignBottomButton" class="ghost-button">Align Bottom</button>
-          <button id="distributeXButton" class="ghost-button">Distribute X</button>
-          <button id="distributeYButton" class="ghost-button">Distribute Y</button>
-          <button id="bringFrontButton" class="ghost-button">Bring Front</button>
-          <button id="sendBackButton" class="ghost-button">Send Back</button>
-          <button id="snapButton" class="ghost-button">Snap: On</button>
-          <button id="connectModeButton" class="ghost-button">Connect: Off</button>
-          <button id="duplicateButton" class="ghost-button">Duplicate</button>
-          <button id="clearButton" class="ghost-button">Clear</button>
-          <button id="loadSampleButton" class="ghost-button">Load Sample</button>
-          <button id="helpButton" class="ghost-button">Help</button>
-          <button id="textPanelButton" class="ghost-button">Text I/O</button>
-          <button id="saveButton" class="primary-button">Export JSON</button>
-          <button id="loadButton" class="ghost-button">Import JSON</button>
-          <button id="svgButton" class="ghost-button">Export SVG</button>
-          <button id="pngButton" class="ghost-button">Export PNG</button>
+        <div class="toolbar" aria-label="編集ツールバー">
+          <button id="undoButton" class="ghost-button" type="button">元に戻す</button>
+          <button id="redoButton" class="ghost-button" type="button">やり直す</button>
+          <button id="selectAllButton" class="ghost-button" type="button">全選択</button>
+          <button id="alignLeftButton" class="ghost-button" type="button">左揃え</button>
+          <button id="alignRightButton" class="ghost-button" type="button">右揃え</button>
+          <button id="alignTopButton" class="ghost-button" type="button">上揃え</button>
+          <button id="alignBottomButton" class="ghost-button" type="button">下揃え</button>
+          <button id="distributeXButton" class="ghost-button" type="button">横分布</button>
+          <button id="distributeYButton" class="ghost-button" type="button">縦分布</button>
+          <button id="bringFrontButton" class="ghost-button" type="button">前面へ</button>
+          <button id="sendBackButton" class="ghost-button" type="button">背面へ</button>
+          <button id="snapButton" class="ghost-button" type="button">スナップ: ON</button>
+          <button id="connectModeButton" class="ghost-button" type="button">接続モード: OFF</button>
+          <button id="duplicateButton" class="ghost-button" type="button">複製</button>
+          <button id="clearButton" class="ghost-button" type="button">全消去</button>
+          <button id="quickLoadSampleButton" class="ghost-button" type="button">サンプル</button>
+          <button id="helpButton" class="ghost-button" type="button">ヘルプ</button>
+          <a class="ghost-button toolbar-link-button" href="./ui-kit.html">UI キット</a>
+          <a class="ghost-button toolbar-link-button" href="./review.html">レビュー</a>
+          <button id="textPanelButton" class="ghost-button" type="button">テキスト入出力</button>
+          <button id="saveButton" class="primary-button" type="button">JSON 書き出し</button>
+          <button id="loadButton" class="ghost-button" type="button">JSON 読み込み</button>
+          <button id="svgButton" class="ghost-button" type="button">SVG</button>
+          <button id="pngButton" class="ghost-button" type="button">PNG</button>
           <input id="fileInput" type="file" accept="application/json,text/plain,.json,.txt,.workflow" hidden />
         </div>
       </header>
 
       <main class="workspace">
-        <aside class="palette-panel">
+        <aside class="palette-panel panel-surface">
           <div class="panel-header">
-            <h2>Palette</h2>
-            <p>Add components by category.</p>
+            <h2>パレット</h2>
+            <p>カテゴリ別のコンポーネントを配置して、見た目基準に沿った図面を組み立てます。</p>
           </div>
           <div class="palette-search-wrap">
-            <input id="paletteSearchInput" type="search" placeholder="Search components" />
+            <input id="paletteSearchInput" type="search" placeholder="コンポーネントを検索" />
           </div>
           <div id="palette" class="palette-list"></div>
         </aside>
 
-        <section class="canvas-panel">
+        <section class="canvas-panel panel-surface">
           <div class="canvas-header">
             <div>
-              <h2>Canvas</h2>
-              <p>Marquee select, drag to move, and use common illustration shortcuts.</p>
+              <h2>キャンバス</h2>
+              <p>複数選択、ドラッグ移動、整列、接続を使って構成を調整します。</p>
             </div>
             <div class="canvas-legend">
               <span><i class="dot compute"></i>Compute</span>
@@ -65,9 +70,9 @@
               <span><i class="dot security"></i>Security</span>
             </div>
           </div>
-          <div class="template-strip">
+          <div class="template-strip" aria-label="テンプレート">
             <span class="template-strip-label">Templates</span>
-            <button id="loadSampleButton" class="ghost-button" type="button">Web App</button>
+            <button id="loadWebSampleButton" class="ghost-button" type="button">Web App</button>
             <button id="loadEventSampleButton" class="ghost-button" type="button">Event Mesh</button>
             <button id="loadDataSampleButton" class="ghost-button" type="button">Data Pipeline</button>
           </div>
@@ -77,92 +82,91 @@
             <div id="marquee" class="marquee hidden"></div>
           </div>
           <div class="statusbar">
-            <span id="statusLabel">0 selected</span>
-            <span>Shortcuts: Ctrl/Cmd+Z, Y, A, C, X, V, D, S, E, Delete, Arrows</span>
+            <span id="statusLabel">0件選択 / ノード0件 / 接続0件</span>
+            <span>主要ショートカット: Ctrl/Cmd+Z, Y, A, C, X, V, D, S, E, Delete, 矢印 / パン: Space+drag, 中ドラッグ</span>
           </div>
         </section>
 
-        <aside class="inspector-panel">
+        <aside class="inspector-panel panel-surface">
           <div class="panel-header">
-            <h2>Inspector</h2>
-            <p>Edit the current selection.</p>
+            <h2>インスペクター</h2>
+            <p>選択中のノードのラベル、色、種別、メタ情報を調整します。</p>
+          </div>
+          <div class="priority-card">
+            <p class="priority-card-label">次の操作改善</p>
+            <ol class="priority-list">
+              <li>ハンドパン</li>
+              <li>背景グリッド追従</li>
+              <li>テキストボックス追加</li>
+              <li>領域塗り</li>
+            </ol>
           </div>
           <div id="emptyInspector" class="inspector-empty">
-            Select one or more nodes to edit them.
+            ノードを選択すると、ここで見た目と基本情報を編集できます。
           </div>
           <form id="inspectorForm" class="inspector-form hidden">
             <label>
-              Label
+              ラベル
               <input id="labelInput" type="text" />
             </label>
-            <label>
-              Color
+            <label class="inspector-field inspector-field-compact">
+              色
               <input id="colorInput" type="color" />
             </label>
-            <label>
-              Type
+            <label class="inspector-field inspector-field-compact">
+              種別
               <input id="typeInput" type="text" disabled />
             </label>
-            <label>
+            <label class="inspector-field inspector-field-compact">
               Meta
               <input id="metaInput" type="text" disabled />
             </label>
-            <button id="deleteButton" type="button" class="danger-button">Delete Selection</button>
+            <button id="deleteButton" type="button" class="danger-button">選択を削除</button>
           </form>
-          <section id="reviewPanel" class="review-panel">
-            <div class="panel-header panel-header-tight">
-              <h2>Progress Review</h2>
-              <p>Task visibility for handoff and SNS updates.</p>
-            </div>
-            <div id="reviewStats" class="review-stats"></div>
-            <div id="reviewList" class="review-list"></div>
-            <label class="review-label">
-              Progress Summary
-              <textarea id="reviewSummary" readonly></textarea>
-            </label>
-            <div class="text-panel-actions">
-              <button id="copyReviewButton" type="button" class="ghost-button">Copy Summary</button>
-            </div>
-          </section>
           <section id="textPanel" class="text-panel hidden">
             <div class="panel-header panel-header-tight">
-              <h2>Workflow Text</h2>
-              <p>Mermaid-inspired import and export.</p>
+              <h2>ワークフローテキスト</h2>
+              <p>Mermaid 互換のテキストでワークフローを出力、編集、再読込できます。</p>
             </div>
             <textarea id="textArea" spellcheck="false"></textarea>
             <div class="text-panel-actions">
-              <button id="exportTextButton" type="button" class="ghost-button">Export Text</button>
-              <button id="importTextButton" type="button" class="primary-button">Import Text</button>
-              <button id="downloadTextButton" type="button" class="ghost-button">Download</button>
-              <button id="copyTextButton" type="button" class="ghost-button">Copy</button>
-              <button id="closeTextButton" type="button" class="ghost-button">Close</button>
+              <button id="exportTextButton" type="button" class="ghost-button">書き出す</button>
+              <button id="importTextButton" type="button" class="primary-button">読み込む</button>
+              <button id="downloadTextButton" type="button" class="ghost-button">ダウンロード</button>
+              <button id="copyTextButton" type="button" class="ghost-button">コピー</button>
+              <button id="closeTextButton" type="button" class="ghost-button">閉じる</button>
             </div>
-            <p id="textStatus" class="text-status">Ready.</p>
+            <p id="textStatus" class="text-status">準備完了</p>
           </section>
         </aside>
       </main>
     </div>
 
-    <section id="helpPanel" class="help-panel hidden">
+    <section id="helpPanel" class="help-panel hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
       <div class="help-card">
-        <div class="panel-header panel-header-tight">
-          <h2>Quick Help</h2>
-          <p>Demo-ready shortcuts and actions.</p>
+        <div class="help-card-header">
+          <div class="panel-header panel-header-tight">
+            <h2 id="helpTitle">クイックヘルプ</h2>
+            <p>編集作業で頻繁に使う操作をまとめています。</p>
+          </div>
+          <button id="dismissHelpButton" type="button" class="ghost-button help-dismiss-button" aria-label="ヘルプを閉じる">×</button>
         </div>
         <ul class="help-list">
-          <li><code>Ctrl/Cmd+Z</code>: Undo</li>
-          <li><code>Ctrl/Cmd+Y</code> or <code>Ctrl/Cmd+Shift+Z</code>: Redo</li>
-          <li><code>Ctrl/Cmd+A</code>: Select all</li>
-          <li><code>Ctrl/Cmd+C / X / V</code>: Copy, cut, paste</li>
-          <li><code>Ctrl/Cmd+D</code>: Duplicate</li>
-          <li><code>Delete</code>: Delete selection or edge</li>
-          <li><code>Arrows</code>: Nudge, <code>Shift+Arrows</code>: fast nudge</li>
-          <li><code>Ctrl/Cmd+[</code> and <code>Ctrl/Cmd+]</code>: Layer order</li>
-          <li>Drag on canvas: Marquee select</li>
-          <li>Connect mode: click source then target</li>
+          <li><code>Ctrl/Cmd+Z</code>: 元に戻す</li>
+          <li><code>Ctrl/Cmd+Y</code> または <code>Ctrl/Cmd+Shift+Z</code>: やり直す</li>
+          <li><code>Ctrl/Cmd+A</code>: 全選択</li>
+          <li><code>Ctrl/Cmd+C / X / V</code>: コピー、切り取り、貼り付け</li>
+          <li><code>Ctrl/Cmd+D</code>: 複製</li>
+          <li><code>Delete</code>: 選択ノードまたは接続を削除</li>
+          <li><code>矢印</code>、<code>Shift+矢印</code>: 微移動、大きく移動</li>
+          <li><code>Ctrl/Cmd+[</code> と <code>Ctrl/Cmd+]</code>: 前後移動</li>
+          <li><code>Space+drag</code> または中ボタンドラッグ: ハンドパン</li>
+          <li>キャンバスをドラッグ: 範囲選択</li>
+          <li>接続モードを有効化してからノードを順にクリック: 接続を作成</li>
+          <li><code>Esc</code>: ヘルプや選択を閉じる</li>
         </ul>
         <div class="text-panel-actions">
-          <button id="closeHelpButton" type="button" class="primary-button">Close</button>
+          <button id="closeHelpButton" type="button" class="primary-button">閉じる</button>
         </div>
       </div>
     </section>

@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Edit Set UI Kit</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="ui-kit-shell">
+      <section class="ui-kit-hero">
+        <div class="ui-kit-hero-copy">
+          <p class="eyebrow">Workflow Edit Set</p>
+          <h1>UI Kit Canon</h1>
+          <p>
+            `site/ui-kit.html` を見た目正本として、文字サイズ、ノード寸法、余白、角丸、色、パレット、
+            インスペクター、ラベル、注釈、領域コンテナの基準を実画面サイズで並べています。
+          </p>
+        </div>
+        <div class="ui-kit-hero-actions">
+          <a class="primary-button toolbar-link-button" href="./index.html">編集画面へ戻る</a>
+          <a class="ghost-button toolbar-link-button" href="./review.html">レビューを見る</a>
+        </div>
+      </section>
+
+      <section class="ui-kit-grid">
+        <article class="ui-kit-card span-12">
+          <div class="ui-kit-card-title">
+            <h2>操作改善の優先順位</h2>
+            <p>このセッションで明文化する次の実装順です。ビュー操作の基盤を先に固め、注記系はその後に続けます。</p>
+          </div>
+          <div class="spec-priority-grid">
+            <div class="spec-card">
+              <span class="spec-label">1</span>
+              <strong>ハンドパン</strong>
+              <p class="spec-caption">広い図面を扱う土台。カメラ座標系を先に持たせる。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">2</span>
+              <strong>背景グリッド追従</strong>
+              <p class="spec-caption">ハンドパンと同じビューポート変換に載せて違和感を消す。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">3</span>
+              <strong>テキストボックス追加</strong>
+              <p class="spec-caption">注釈レイヤーを先に実装し、説明文や補足の置き場所を作る。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">4</span>
+              <strong>領域塗り</strong>
+              <p class="spec-caption">領域コンテナと注釈の表現を見てから塗りルールを決める。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-5">
+          <div class="ui-kit-card-title">
+            <h2>Typography</h2>
+            <p>本文、補足、ラベルのサイズをここで固定します。</p>
+          </div>
+          <div class="spec-card-grid">
+            <div class="spec-card">
+              <span class="spec-label">Display</span>
+              <div style="font-size:var(--text-xl);font-weight:700;line-height:1.05;">28px / Hero</div>
+              <p class="spec-caption">ページ見出しと重要なセクション見出し。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Section</span>
+              <div style="font-size:var(--text-lg);font-weight:700;">20px / Section</div>
+              <p class="spec-caption">パネルタイトル、主要カード見出し。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Body</span>
+              <div style="font-size:var(--text-md);">16px / Body copy</div>
+              <p class="spec-caption">通常の説明文と入力本文。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Support</span>
+              <div style="font-size:var(--text-sm);">14px / Support text</div>
+              <p class="spec-caption">補足説明、注釈、ステータス。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Micro</span>
+              <div style="font-size:var(--text-xs);letter-spacing:0.16em;text-transform:uppercase;">12px / Meta label</div>
+              <p class="spec-caption">種別、タグ、細いラベル。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-7">
+          <div class="ui-kit-card-title">
+            <h2>Spacing, Radius, Node Size</h2>
+            <p>グリッド単位は 24px。ノード、カード、入力欄はこのスケールに寄せます。</p>
+          </div>
+          <div class="spec-card-grid">
+            <div class="spec-card">
+              <span class="spec-label">Grid Unit</span>
+              <div class="spec-size-box">24px</div>
+              <p class="spec-caption">スナップ、ノード配置、背景グリッドの基本単位。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Node</span>
+              <div class="spec-size-box">236 x 96</div>
+              <p class="spec-caption">ノード本体の標準サイズ。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Panel Radius</span>
+              <div class="spec-size-box">24px</div>
+              <p class="spec-caption">主要パネルとカードの角丸。</p>
+            </div>
+            <div class="spec-card">
+              <span class="spec-label">Inner Radius</span>
+              <div class="spec-size-box">14px - 18px</div>
+              <p class="spec-caption">入力欄、アイコン枠、内部カードの角丸。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-12">
+          <div class="ui-kit-card-title">
+            <h2>Color Tokens</h2>
+            <p>暖色寄りの紙面ベースにティールを主アクセントとして使います。</p>
+          </div>
+          <div class="spec-token-grid">
+            <div class="token-card">
+              <div class="token-swatch" style="background:#f4f1ea;"></div>
+              <span class="token-label">Canvas Base</span>
+              <span class="token-detail">#f4f1ea</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:rgba(255,250,242,0.9);"></div>
+              <span class="token-label">Surface</span>
+              <span class="token-detail">rgba(255, 250, 242, 0.88)</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#201913;"></div>
+              <span class="token-label">Text</span>
+              <span class="token-detail">#201913</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#6b5b4e;"></div>
+              <span class="token-label">Muted</span>
+              <span class="token-detail">#6b5b4e</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#0f766e;"></div>
+              <span class="token-label">Primary Accent</span>
+              <span class="token-detail">#0f766e</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#c97516;"></div>
+              <span class="token-label">Secondary Accent</span>
+              <span class="token-detail">#c97516</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#d58a1f;"></div>
+              <span class="token-label">Compute</span>
+              <span class="token-detail">#d58a1f</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#1998b5;"></div>
+              <span class="token-label">Data</span>
+              <span class="token-detail">#1998b5</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#2f8f58;"></div>
+              <span class="token-label">Network</span>
+              <span class="token-detail">#2f8f58</span>
+            </div>
+            <div class="token-card">
+              <div class="token-swatch" style="background:#8b5a2b;"></div>
+              <span class="token-label">Security</span>
+              <span class="token-detail">#8b5a2b</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-5">
+          <div class="ui-kit-card-title">
+            <h2>Palette Item</h2>
+            <p>パレット項目は 52px のアイコン枠と 2 行テキストで統一します。</p>
+          </div>
+          <div class="spec-stack">
+            <button class="spec-palette-item" type="button">
+              <span class="spec-icon-wrap"><img class="spec-icon" src="../assets/icons/compute.png" alt="" /></span>
+              <span><strong>ECS</strong><small>Container service</small></span>
+            </button>
+            <button class="spec-palette-item" type="button">
+              <span class="spec-icon-wrap"><img class="spec-icon" src="../assets/icons/database.png" alt="" /></span>
+              <span><strong>Aurora</strong><small>Managed relational DB</small></span>
+            </button>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-7">
+          <div class="ui-kit-card-title">
+            <h2>Inspector Item</h2>
+            <p>入力欄は本文サイズ、ラベルは 14px、補助メタは 12px を使います。</p>
+          </div>
+          <div class="spec-inspector">
+            <label class="spec-field">
+              ラベル
+              <input class="spec-input" type="text" value="Payment API" />
+            </label>
+            <div class="spec-mini-grid two-col">
+              <label class="spec-field">
+                色
+                <input class="spec-input" type="text" value="#1998b5" />
+              </label>
+              <label class="spec-field">
+                種別
+                <input class="spec-input" type="text" value="apigw" />
+              </label>
+            </div>
+            <label class="spec-field">
+              注釈
+              <textarea class="spec-input" rows="4">同期系の入口。UI キットではラベルと注釈を視覚的に分離する。</textarea>
+            </label>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-4">
+          <div class="ui-kit-card-title">
+            <h2>Labels</h2>
+            <p>ラベルは意味ごとに色を分け、サイズは 12px 固定で扱います。</p>
+          </div>
+          <div class="spec-label-stack">
+            <span class="spec-inline-label">Primary label</span>
+            <span class="spec-section-label">Region label</span>
+            <span class="spec-note">Annotation tag</span>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-4">
+          <div class="ui-kit-card-title">
+            <h2>Annotation</h2>
+            <p>注釈はノードとは別面で置き、読みやすさを優先します。</p>
+          </div>
+          <div class="spec-annotation">
+            <strong>補足</strong>
+            <p class="spec-caption">バッチ系は右側の処理群に寄せる。運用系の注意は別色の注記で置く。</p>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-4">
+          <div class="ui-kit-card-title">
+            <h2>Region Container</h2>
+            <p>領域は塗りすぎず、淡い面とラベルでグルーピングを示します。</p>
+          </div>
+          <div class="spec-region">
+            <span class="spec-region-tag">Public Entry</span>
+            <p class="spec-caption">パブリック経路や責務境界を示すためのコンテナ。</p>
+          </div>
+        </article>
+
+        <article class="ui-kit-card span-12">
+          <div class="ui-kit-card-title">
+            <h2>Integrated Canvas Specimen</h2>
+            <p>ノード、ラベル、注釈、領域をまとめて見たときの基準面です。</p>
+          </div>
+          <div class="spec-canvas">
+            <svg class="spec-edge" viewBox="0 0 1200 560" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M 270 174 C 340 174, 360 174, 430 174"></path>
+              <path d="M 666 174 C 750 174, 790 174, 874 174"></path>
+              <path d="M 666 174 C 730 174, 750 304, 820 304"></path>
+            </svg>
+
+            <div class="spec-region" style="position:absolute; left:40px; top:48px; width:330px; min-height:420px;">
+              <span class="spec-region-tag">Public Zone</span>
+              <p class="spec-caption">外部入口と API 境界。</p>
+            </div>
+
+            <div class="spec-region is-warning" style="position:absolute; left:392px; top:96px; width:744px; min-height:324px;">
+              <span class="spec-region-tag">Core Processing</span>
+              <p class="spec-caption">内部処理、データ、非同期連携。</p>
+            </div>
+
+            <article class="spec-node" style="left:92px; top:126px;">
+              <span class="node-media"><img class="node-icon" src="../assets/icons/network.png" alt="" /></span>
+              <span class="node-copy">
+                <span class="node-type">cloudfront</span>
+                <span class="node-label">Public Edge</span>
+              </span>
+            </article>
+
+            <article class="spec-node" style="left:428px; top:126px; box-shadow:var(--shadow-lg), 0 0 0 1px rgba(25,152,181,0.22);">
+              <span class="node-media"><img class="node-icon" src="../assets/icons/network.png" alt="" /></span>
+              <span class="node-copy">
+                <span class="node-type">apigw</span>
+                <span class="node-label">Workflow API</span>
+              </span>
+            </article>
+
+            <article class="spec-node" style="left:872px; top:126px; box-shadow:var(--shadow-lg), 0 0 0 1px rgba(213,138,31,0.22);">
+              <span class="node-media"><img class="node-icon" src="../assets/icons/compute.png" alt="" /></span>
+              <span class="node-copy">
+                <span class="node-type">ecs</span>
+                <span class="node-label">Editor Service</span>
+              </span>
+            </article>
+
+            <article class="spec-node" style="left:820px; top:256px; box-shadow:var(--shadow-lg), 0 0 0 1px rgba(47,143,88,0.22);">
+              <span class="node-media"><img class="node-icon" src="../assets/icons/integration.png" alt="" /></span>
+              <span class="node-copy">
+                <span class="node-type">sqs</span>
+                <span class="node-label">Annotation Queue</span>
+              </span>
+            </article>
+
+            <div class="spec-annotation" style="position:absolute; left:438px; top:64px; width:280px;">
+              <strong>注釈例</strong>
+              <p class="spec-caption">ここにテキストボックスを追加し、操作説明や注意点を直接置く。</p>
+            </div>
+
+            <div class="spec-note-stack" style="position:absolute; left:890px; top:86px;">
+              <span class="spec-inline-label">Selected node</span>
+              <span class="spec-note">236 x 96</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
